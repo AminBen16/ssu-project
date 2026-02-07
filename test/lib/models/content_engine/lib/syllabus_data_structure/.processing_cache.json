@@ -1,0 +1,300 @@
+{
+  "processed_files": {
+    "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\ENGLISH_SYLLABUS_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\ENGLISH_SYLLABUS_clean.md",
+      "file_hash": "eedf144efdd4ef9f27d8bfc32ad00851",
+      "last_modified": "2026-02-03T23:09:09.272550",
+      "processed": true,
+      "entry_count": 2
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Agriculture_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Agriculture_clean.md",
+      "file_hash": "25f325585e42a86ef4c8c6c14e66c736",
+      "last_modified": "2026-02-04T02:15:34.537649",
+      "processed": true,
+      "entry_count": 10
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Biology_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Biology_clean.md",
+      "file_hash": "ec63ffa1c6bda57a35407b246e2959c9",
+      "last_modified": "2026-02-04T00:53:24.279540",
+      "processed": true,
+      "entry_count": 5
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_CHEMISTRY_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_CHEMISTRY_clean.md",
+      "file_hash": "5c7ddd182936ff9a841919a90c5b5f2b",
+      "last_modified": "2026-02-04T01:00:17.635835",
+      "processed": true,
+      "entry_count": 8
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_CLOTHING-AND-TEXTILE_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_CLOTHING-AND-TEXTILE_clean.md",
+      "file_hash": "aa900380c02c6f91da531a0b4fbc14a6",
+      "last_modified": "2026-02-04T02:24:14.777082",
+      "processed": true,
+      "entry_count": 6
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_CRE-SYLLABUS_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_CRE-SYLLABUS_clean.md",
+      "file_hash": "e58a8c7065ec97c95c460e1fdc5c7806",
+      "last_modified": "2026-02-04T01:20:06.573317",
+      "processed": true,
+      "entry_count": 14
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Economics_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Economics_clean.md",
+      "file_hash": "2f28c1c6087a2732f46e2f04e7379eeb",
+      "last_modified": "2026-02-04T01:24:44.046609",
+      "processed": true,
+      "entry_count": 6
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_entrepreneurship-syllabus-new-a-level-curruculum-by-ncdc-2025_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_entrepreneurship-syllabus-new-a-level-curruculum-by-ncdc-2025_clean.md",
+      "file_hash": "99871975695d47a3b040d61c0ff8fb3a",
+      "last_modified": "2026-02-04T02:47:47.911229",
+      "processed": true,
+      "entry_count": 12
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Foods-and-Nutrition_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Foods-and-Nutrition_clean.md",
+      "file_hash": "683a9fde1b5b661eb30639a54c2129e3",
+      "last_modified": "2026-02-04T02:26:19.575181",
+      "processed": true,
+      "entry_count": 15
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_General-Paper_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_General-Paper_clean.md",
+      "file_hash": "a2ad189c9b0203d22a5c2192a4d44b29",
+      "last_modified": "2026-02-04T01:44:40.055617",
+      "processed": true,
+      "entry_count": 2
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Geography_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Geography_clean.md",
+      "file_hash": "1ce18d82fceed93854840dc80628500c",
+      "last_modified": "2026-02-04T01:36:48.860422",
+      "processed": true,
+      "entry_count": 11
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_German-Language_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_German-Language_clean.md",
+      "file_hash": "775c5545d25e0f479baff9b1c958465d",
+      "last_modified": "2026-02-04T01:54:25.990220",
+      "processed": true,
+      "entry_count": 22
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_HISTORY_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_HISTORY_clean.md",
+      "file_hash": "3ac9aee912a9fa9e746f2c4485c53740",
+      "last_modified": "2026-02-04T01:41:33.905475",
+      "processed": true,
+      "entry_count": 21
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_IRE_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_IRE_clean.md",
+      "file_hash": "6fce15b388a17efddf2972ad585180b9",
+      "last_modified": "2026-02-04T01:48:34.234916",
+      "processed": true,
+      "entry_count": 17
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Kiswahili_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Kiswahili_clean.md",
+      "file_hash": "a04f8c5992e8ef36a2e05e30f4a1111c",
+      "last_modified": "2026-02-04T01:58:52.485915",
+      "processed": true,
+      "entry_count": 24
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Literature-in-English_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Literature-in-English_clean.md",
+      "file_hash": "75bfe9e33995fea17d97c47c12baada6",
+      "last_modified": "2026-02-04T02:04:43.105434",
+      "processed": true,
+      "entry_count": 15
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Local-Languages-Framework_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Local-Languages-Framework_clean.md",
+      "file_hash": "33e4bbdb02f4ee0935b8ef7aa85aad79",
+      "last_modified": "2026-02-04T02:11:45.772570",
+      "processed": true,
+      "entry_count": 15
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Metal-Work_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Metal-Work_clean.md",
+      "file_hash": "42034e2db64f4ef62a67d6222c537de0",
+      "last_modified": "2026-02-04T02:40:07.335816",
+      "processed": true,
+      "entry_count": 9
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_MUSIC_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_MUSIC_clean.md",
+      "file_hash": "f5a8befcb262d094d1ed037da4461884",
+      "last_modified": "2026-02-04T02:34:23.178369",
+      "processed": true,
+      "entry_count": 18
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Physics_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Physics_clean.md",
+      "file_hash": "b8992143bbbcdb2dd594c48417309c0d",
+      "last_modified": "2026-02-04T01:04:41.622966",
+      "processed": true,
+      "entry_count": 16
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_PRINCIPAL-MATHS_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_PRINCIPAL-MATHS_clean.md",
+      "file_hash": "c5a9d6441d5edd4cb77784479db3dc3c",
+      "last_modified": "2026-02-04T01:14:09.578461",
+      "processed": true,
+      "entry_count": 17
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Subsidiary-ICT_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_Subsidiary-ICT_clean.md",
+      "file_hash": "97ee8b08a897a473f58537676272cebb",
+      "last_modified": "2026-02-04T02:52:41.882964",
+      "processed": true,
+      "entry_count": 9
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_SUBSIDIARY-MATHEMATICS_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_SUBSIDIARY-MATHEMATICS_clean.md",
+      "file_hash": "aaa70806ac4a4ba2d4b86fca2b78c35d",
+      "last_modified": "2026-02-04T01:15:42.512304",
+      "processed": true,
+      "entry_count": 8
+    },
+    "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_TEchnical-Drawing_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_alevel_syllabi\\ALEVEL_TEchnical-Drawing_clean.md",
+      "file_hash": "c594656e8f9695d4586e60789531b9aa",
+      "last_modified": "2026-02-04T02:44:44.663823",
+      "processed": true,
+      "entry_count": 16
+    },
+    "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\AGRIC_SYLLABUS_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\AGRIC_SYLLABUS_clean.md",
+      "file_hash": "d3cc80dccc3abe1e30e8128340e6b240",
+      "last_modified": "2026-02-03T22:58:07.909114",
+      "processed": true,
+      "entry_count": 17
+    },
+    "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\Art_and_Design_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\Art_and_Design_clean.md",
+      "file_hash": "452ffd55267db6699c9378109862a7e0",
+      "last_modified": "2026-02-03T23:49:56.702128",
+      "processed": true,
+      "entry_count": 30
+    },
+    "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\Biology_Syllabus_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\Biology_Syllabus_clean.md",
+      "file_hash": "435c46ac153e0e452bf1fc1744493846",
+      "last_modified": "2026-02-03T23:00:16.111602",
+      "processed": true,
+      "entry_count": 3
+    },
+    "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\CHEMISTRY_SYLLABUS_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\CHEMISTRY_SYLLABUS_clean.md",
+      "file_hash": "ecdaf6c181307024e822ba0c454d3cfa",
+      "last_modified": "2026-02-03T23:05:34.253470",
+      "processed": true,
+      "entry_count": 12
+    },
+    "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\CRE_syllabus_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\CRE_syllabus_clean.md",
+      "file_hash": "eb35cf6280274eef6a079ba64bd69e68",
+      "last_modified": "2026-02-03T23:07:02.134731",
+      "processed": true,
+      "entry_count": 9
+    },
+    "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\FOOD__NUTRITION_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\FOOD__NUTRITION_clean.md",
+      "file_hash": "c38e579408f5ff38d1b4327379db44f8",
+      "last_modified": "2026-02-03T23:32:00.935761",
+      "processed": true,
+      "entry_count": 25
+    },
+    "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\Foreign_Languages_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\Foreign_Languages_clean.md",
+      "file_hash": "325f8ffb47dbe40b9ba1fdc61ec2fe96",
+      "last_modified": "2026-02-04T00:27:04.120801",
+      "processed": true,
+      "entry_count": 16
+    },
+    "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\Geography_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\Geography_clean.md",
+      "file_hash": "57175dc1042467659d38d00ff7a4a237",
+      "last_modified": "2026-02-04T00:14:43.951542",
+      "processed": true,
+      "entry_count": 24
+    },
+    "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\History_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\History_clean.md",
+      "file_hash": "742150807f8ade80bbd0152fe39221ba",
+      "last_modified": "2026-02-04T00:09:33.304535",
+      "processed": true,
+      "entry_count": 33
+    },
+    "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\ICT_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\ICT_clean.md",
+      "file_hash": "f8dee5158e65a318b711bc22bacd1775",
+      "last_modified": "2026-02-04T00:44:23.027762",
+      "processed": true,
+      "entry_count": 6
+    },
+    "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\Kiswahili_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\Kiswahili_clean.md",
+      "file_hash": "6e4f8d39da2c04a7c36747f4652dfc60",
+      "last_modified": "2026-02-04T00:20:35.155106",
+      "processed": true,
+      "entry_count": 4
+    },
+    "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\Literature_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\Literature_clean.md",
+      "file_hash": "ca63e0615679991cd5f01f91d07bfb62",
+      "last_modified": "2026-02-04T00:16:13.771502",
+      "processed": true,
+      "entry_count": 7
+    },
+    "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\Local_Language_Framework_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\Local_Language_Framework_clean.md",
+      "file_hash": "c79545dc5a1e9a34c914a880c7d720e0",
+      "last_modified": "2026-02-04T00:46:59.552046",
+      "processed": true,
+      "entry_count": 16
+    },
+    "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\Mathematics_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\Mathematics_clean.md",
+      "file_hash": "1b8b1e2c89a083597ed2cb082e4f1de4",
+      "last_modified": "2026-02-04T00:04:37.781480",
+      "processed": true,
+      "entry_count": 36
+    },
+    "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\PERFORMING_ARTS_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\PERFORMING_ARTS_clean.md",
+      "file_hash": "8551977522fa1b3ad2a534bb7ab47504",
+      "last_modified": "2026-02-03T23:40:28.632423",
+      "processed": true,
+      "entry_count": 22
+    },
+    "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\PHYSICAL_EDUCATION_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\PHYSICAL_EDUCATION_clean.md",
+      "file_hash": "1fa91e845044cbd6096712038ff8d050",
+      "last_modified": "2026-02-03T23:43:40.436745",
+      "processed": true,
+      "entry_count": 44
+    },
+    "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\PHYSICS_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\PHYSICS_clean.md",
+      "file_hash": "abd4dec04b3ae2598dd3d8a1a4a57d10",
+      "last_modified": "2026-02-03T23:55:22.399128",
+      "processed": true,
+      "entry_count": 31
+    },
+    "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\Technology_and_Design_clean.md": {
+      "file_path": "C:\\Users\\user\\SSU\\cleaned_olevel_syllabi\\Technology_and_Design_clean.md",
+      "file_hash": "f38d50a6dc239c53f657292ec523c68b",
+      "last_modified": "2026-02-04T00:35:26.880359",
+      "processed": true,
+      "entry_count": 19
+    }
+  },
+  "total_entries": 652,
+  "last_run": "2026-02-04T06:00:33.446692"
+}
