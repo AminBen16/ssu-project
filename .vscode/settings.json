@@ -1,7 +1,0 @@
-{
-    "cmake.sourceDirectory": "C:/Users/user/SSU/test/linux",
-    "snyk.advanced.autoSelectOrganization": true,
-    "Codegeex.GenerationPreference": "line by line",
-    "Codegeex.SidebarUI.LanguagePreference": "English",
-    "CodeGPT.apiKey": "Anthropic"
-}
