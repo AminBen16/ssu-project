@@ -1578,7 +1578,7 @@ Future<Response> _getStudentHandler(Request request) async {
       SELECT s.*, u.first_name, u.last_name, u.email, u.role,
              c.name as class_name, sch.name as school_name,
              GROUP_CONCAT(DISTINCT sp.parent_user_id) as parent_ids,
-             GROUP_CONCAT(DISTINCT CONCAT(pu.first_name, ' ', pu.last_name)) as parent_names,
+             GROUP_CONCAT(DISTINCT (pu.first_name || ' ' || pu.last_name)) as parent_names,
              GROUP_CONCAT(DISTINCT s.subject_codes) as subject_codes,
              GROUP_CONCAT(DISTINCT subj.name) as subject_names
       FROM students s
@@ -1587,7 +1587,7 @@ Future<Response> _getStudentHandler(Request request) async {
       LEFT JOIN schools sch ON s.school_id = sch.id
       LEFT JOIN student_parents sp ON s.id = sp.student_id
       LEFT JOIN users pu ON sp.parent_user_id = pu.id
-      LEFT JOIN subjects subj ON FIND_IN_SET(subj.code, s.subject_codes)
+      LEFT JOIN subjects subj ON instr(',' || COALESCE(s.subject_codes, '') || ',', ',' || subj.code || ',') > 0
       WHERE s.id = ?
       GROUP BY s.id
     ''', [int.tryParse(studentId) ?? 0]);
