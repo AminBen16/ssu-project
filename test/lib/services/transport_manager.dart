@@ -181,7 +181,7 @@ class WifiDirectTransportManager implements TransportManager {
     await _nearbyService!.init(
       serviceType: 'school_comms',
       deviceName: localDeviceId,
-      strategy: Strategy.p2p,
+      strategy: Strategy.p2pCluster,
       callback: (isRunning) {
         if (isRunning) {
           // Start advertising and browsing

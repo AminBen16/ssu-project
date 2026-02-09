@@ -29,19 +29,19 @@ class CurriculumService {
     }
   }
 
-  Future<List<Strand>> getTopicsByStrand(int strandId) async {
+  Future<List<Topic>> getTopicsByStrand(int strandId) async {
     try {
       // Use correct method name from database service
-      final strands = await CurriculumDatabaseService.getStrandsBySubject(strandId);
-      if (strands.isNotEmpty) {
-        return strands;
+      final topics = await CurriculumDatabaseService.getTopicsByStrand(strandId);
+      if (topics.isNotEmpty) {
+        return topics;
       }
       
       // Fallback to placeholder data for offline functionality
       return [
-        Strand(
+        Topic(
           id: 1,
-          subjectId: strandId,
+          strandId: strandId,
           name: 'Chemical Reactions',
           code: 'CR001',
           description: 'Understanding chemical reactions',
@@ -49,11 +49,11 @@ class CurriculumService {
         ),
       ];
     } catch (e) {
-      _logger.e('Error fetching strands: $e');
+      _logger.e('Error fetching topics: $e');
       return [
-        Strand(
+        Topic(
           id: 1,
-          subjectId: strandId,
+          strandId: strandId,
           name: 'Chemical Reactions',
           code: 'CR001',
           description: 'Understanding chemical reactions',
@@ -62,6 +62,7 @@ class CurriculumService {
       ];
     }
   }
+
 
   Future<List<LearningOutcome>> getLearningOutcomesByTopic(int topicId) async {
     try {
@@ -82,8 +83,8 @@ class CurriculumService {
 
   Future<List<CurriculumCompetence>> getCompetencesByTopic(int topicId) async {
     try {
-      // return await CurriculumDatabaseService.getCompetencesByTopic(topicId);
-      // Fallback to placeholder data for offline functionality
+      // Note: Competencies are stored in the database but need to be mapped to CurriculumCompetence
+      // For now, return placeholder data until the mapping is implemented
       return [
         CurriculumCompetence(
           id: 1,
@@ -103,12 +104,18 @@ class CurriculumService {
     }
   }
 
+
   Future<List<SuggestedActivity>> getActivitiesByTopic(int topicId) async {
     try {
-      // final activities = await CurriculumDatabaseService.getActivitiesByTopic(topicId);
-      // if (activities.isNotEmpty) {
-      //   return activities;
-      // }
+      // Get learning outcomes for this topic first
+      final learningOutcomes = await CurriculumDatabaseService.getLearningOutcomesByTopic(topicId);
+      if (learningOutcomes.isNotEmpty) {
+        // Get activities for the first learning outcome
+        final activities = await CurriculumDatabaseService.getActivitiesByLearningOutcome(learningOutcomes.first.id!);
+        if (activities.isNotEmpty) {
+          return activities;
+        }
+      }
       
       // Fallback to placeholder data for offline functionality
       return [
@@ -132,12 +139,49 @@ class CurriculumService {
     }
   }
 
+  /// Get activities by learning outcome ID
+  Future<List<SuggestedActivity>> getActivitiesByOutcome(int learningOutcomeId) async {
+    try {
+      final activities = await CurriculumDatabaseService.getActivitiesByLearningOutcome(learningOutcomeId);
+      if (activities.isNotEmpty) {
+        return activities;
+      }
+      
+      // Fallback to placeholder data for offline functionality
+      return [
+        SuggestedActivity(
+          id: 1,
+          learningOutcomeId: learningOutcomeId,
+          activityText: 'Conduct laboratory experiments',
+          orderIndex: 1,
+        ),
+      ];
+    } catch (e) {
+      _logger.e('Error fetching activities by outcome: $e');
+      return [
+        SuggestedActivity(
+          id: 1,
+          learningOutcomeId: learningOutcomeId,
+          activityText: 'Conduct laboratory experiments',
+          orderIndex: 1,
+        ),
+      ];
+    }
+  }
+
+
+
   Future<List<AssessmentStrategy>> getAssessmentsByTopic(int topicId) async {
     try {
-      // final assessments = await CurriculumDatabaseService.getAssessmentsByTopic(topicId);
-      // if (assessments.isNotEmpty) {
-      //   return assessments;
-      // }
+      // Get learning outcomes for this topic first
+      final learningOutcomes = await CurriculumDatabaseService.getLearningOutcomesByTopic(topicId);
+      if (learningOutcomes.isNotEmpty) {
+        // Get assessments for the first learning outcome
+        final assessments = await CurriculumDatabaseService.getAssessmentsByLearningOutcome(learningOutcomes.first.id!);
+        if (assessments.isNotEmpty) {
+          return assessments;
+        }
+      }
       
       // Fallback to placeholder data for offline functionality
       return [
@@ -161,18 +205,19 @@ class CurriculumService {
     }
   }
 
-  Future<List<CrossCuttingIssue>> getCrossCuttingIssues() async {
+
+  Future<List<CrossCuttingIssue>> getCrossCuttingIssues(int subjectId) async {
     try {
-      // final issues = await CurriculumDatabaseService.getCrossCuttingIssues();
-      // if (issues.isNotEmpty) {
-      //   return issues;
-      // }
+      final issues = await CurriculumDatabaseService.getCrossCuttingIssuesBySubject(subjectId);
+      if (issues.isNotEmpty) {
+        return issues;
+      }
       
       // Fallback to placeholder data for offline functionality
       return [
         CrossCuttingIssue(
           id: 1,
-          subjectId: 1, // Default subject ID
+          subjectId: subjectId,
           issueName: 'Environmental conservation',
           description: 'Integrate environmental awareness in chemistry',
         ),
@@ -182,7 +227,7 @@ class CurriculumService {
       return [
         CrossCuttingIssue(
           id: 1,
-          subjectId: 1, // Default subject ID
+          subjectId: subjectId,
           issueName: 'Environmental conservation',
           description: 'Integrate environmental awareness in chemistry',
         ),
@@ -190,18 +235,16 @@ class CurriculumService {
     }
   }
 
-  Future<List<Value>> getValues() async {
+
+  Future<List<Value>> getValues(int subjectId) async {
     try {
-      // final values = await CurriculumDatabaseService.getValues();
-      // if (values.isNotEmpty) {
-      //   return values;
-      // }
-      
-      // Fallback to placeholder data for offline functionality
+      // Note: Values are not stored as a separate table in the database
+      // They are part of the curriculum data structure
+      // Return placeholder data for now
       return [
         Value(
           id: 1,
-          subjectId: 1, // Default subject ID
+          subjectId: subjectId,
           valueName: 'Scientific integrity',
           description: 'Maintain honesty in scientific work',
         ),
@@ -211,7 +254,7 @@ class CurriculumService {
       return [
         Value(
           id: 1,
-          subjectId: 1, // Default subject ID
+          subjectId: subjectId,
           valueName: 'Scientific integrity',
           description: 'Maintain honesty in scientific work',
         ),
@@ -219,18 +262,19 @@ class CurriculumService {
     }
   }
 
-  Future<List<GenericSkill>> getGenericSkills() async {
+
+  Future<List<GenericSkill>> getGenericSkills(int subjectId) async {
     try {
-      // final skills = await CurriculumDatabaseService.getGenericSkills();
-      // if (skills.isNotEmpty) {
-      //   return skills;
-      // }
+      final skills = await CurriculumDatabaseService.getGenericSkillsBySubject(subjectId);
+      if (skills.isNotEmpty) {
+        return skills;
+      }
       
       // Fallback to placeholder data for offline functionality
       return [
         GenericSkill(
           id: 1,
-          subjectId: 1, // Default subject ID
+          subjectId: subjectId,
           skillName: 'Critical thinking',
           description: 'Analyze information critically',
         ),
@@ -240,13 +284,14 @@ class CurriculumService {
       return [
         GenericSkill(
           id: 1,
-          subjectId: 1, // Default subject ID
+          subjectId: subjectId,
           skillName: 'Critical thinking',
           description: 'Analyze information critically',
         ),
       ];
     }
   }
+
 
   Future<Subject?> getSubjectById(int subjectId) async {
     try {

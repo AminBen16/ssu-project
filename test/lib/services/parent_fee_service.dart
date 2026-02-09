@@ -370,7 +370,59 @@ class ParentFeeService {
       return {};
     }
   }
+
+  /// Gets all payments for a school (for admin/fee collection screen)
+  Future<List<FeePaymentData>> getAllPaymentsForSchool(String schoolId, {DateTime? startDate, DateTime? endDate}) async {
+    try {
+      final cacheKey = 'school_payments_$schoolId';
+
+      return await _offlineService.callWithOfflineFallback(
+        onlineCall: () async {
+          final queryParams = <String, String>{};
+          if (startDate != null) {
+            queryParams['startDate'] = startDate.toIso8601String();
+          }
+          if (endDate != null) {
+            queryParams['endDate'] = endDate.toIso8601String();
+          }
+          
+          final response = await _apiClient.get(
+            '/api/schools/$schoolId/payments',
+            queryParameters: queryParams.isNotEmpty ? queryParams : null,
+          );
+
+          
+          if (response == null) return [];
+
+          final List<dynamic> payments = response['payments'] as List<dynamic>? ?? [];
+          return payments
+              .map((p) => FeePaymentData.fromMap(p as Map<String, dynamic>))
+              .toList();
+        },
+        offlineFallback: () async {
+          final cached = await _localDb.getCache(cacheKey);
+          if (cached != null) {
+            final List<dynamic> payments = jsonDecode(cached);
+            return payments
+                .map((p) => FeePaymentData.fromMap(p as Map<String, dynamic>))
+                .toList();
+          }
+
+          // Get all local payments and filter by school if possible
+          final allPayments = await _localDb.getAllData('payments');
+          return allPayments
+              .map((p) => FeePaymentData.fromMap(p as Map<String, dynamic>))
+              .toList();
+        },
+        cacheKey: cacheKey,
+      );
+    } catch (e) {
+      _logger.e('Error fetching payments for school $schoolId: $e');
+      return [];
+    }
+  }
 }
+
 
 // Singleton instance
 final parentFeeService = ParentFeeService();
