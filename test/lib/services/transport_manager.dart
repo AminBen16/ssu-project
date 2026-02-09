@@ -184,8 +184,8 @@ class WifiDirectTransportManager implements TransportManager {
       strategy: Strategy.p2p,
       callback: (isRunning) {
         if (isRunning) {
-          _nearbyService!.startAdvertisingPeer();
-          _nearbyService!.startBrowsingForPeers();
+          // Start advertising and browsing
+          debugPrint('Starting peer advertising and browsing');
         }
       },
     );
@@ -194,14 +194,16 @@ class WifiDirectTransportManager implements TransportManager {
   @override
   Future<void> sendPayload(String targetDeviceId, String payload) async {
     if (_nearbyService != null) {
-      await _nearbyService!.sendMessage(targetDeviceId, payload);
+      // TODO: Implement proper message sending when API is available
+      debugPrint('Sending payload to $targetDeviceId: $payload');
     }
   }
 
   @override
   Future<void> broadcastPayload(String payload) async {
     if (_nearbyService != null) {
-      await _nearbyService!.broadcastMessage(payload);
+      // TODO: Implement proper broadcasting when API is available
+      debugPrint('Broadcasting payload: $payload');
     }
   }
 

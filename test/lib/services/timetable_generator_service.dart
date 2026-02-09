@@ -4,7 +4,7 @@ import 'package:test/services/student_service.dart';
 import 'package:test/services/local_database_service.dart';
 import 'package:test/models/subject.dart';
 import 'package:test/models/staff.dart';
-import 'dart:math';
+import 'package:test/models/timetable_constants.dart';
 import 'package:flutter/foundation.dart';
 
 /// Enhanced constraint model for timetable generation
@@ -1319,8 +1319,7 @@ class TimetableGeneratorService {
       }
       
       // If we couldn't assign in this day, continue to next day
-      continue;
-    }
+      }
       
       // Backtrack - couldn't assign this subject
       return false;
@@ -1347,6 +1346,73 @@ class TimetableGeneratorService {
       'conflicts': conflicts,
       'subjectCounts': subjectCounts,
     };
+  }
+
+  /// Helper method to check if a slot is available
+  TimetableConflict? _checkSlotAvailability({
+    required String day,
+    required String slot,
+    required String subject,
+    required List<String> teachers,
+    required Map<String, TimetableConstraint> constraints,
+    required Map<String, Map<String, ScheduledLesson>> currentTimetable,
+    required Map<String, int> subjectCounts,
+  }) {
+    // Check if slot is already occupied
+    final currentLesson = currentTimetable[day]?[slot];
+    if (currentLesson != null && currentLesson.subjectName.isNotEmpty) {
+      return TimetableConflict(
+        type: 'slot',
+        description: 'Time slot $slot on $day is already occupied',
+        details: {
+          'day': day,
+          'slot': slot,
+          'existingSubject': currentLesson.subjectName,
+          'existingTeacher': currentLesson.teacherId,
+        },
+        severity: 2,
+      );
+    }
+    
+    // Check teacher conflicts
+    for (final otherSlot in currentTimetable[day]?.values ?? []) {
+      if (otherSlot.subjectName.isNotEmpty) {
+        // Check if any teacher is double-booked
+        for (final teacherId in teachers) {
+          if (otherSlot.teacherId == teacherId) {
+            return TimetableConflict(
+              type: 'teacher',
+              description: 'Teacher $teacherId is already scheduled at ${otherSlot.subjectName} on $day',
+              details: {
+                'teacherId': teacherId,
+                'conflictingSubject': otherSlot.subjectName,
+                'day': day,
+                'slot': slot,
+              },
+              severity: 3,
+            );
+          }
+        }
+      }
+    }
+    
+    // Check subject distribution balance
+    final currentCount = subjectCounts[subject] ?? 0;
+    final maxCount = teachers.length * 2; // Rough balance: 2 periods per teacher per week
+    if (currentCount >= maxCount) {
+      return TimetableConflict(
+        type: 'subject',
+        description: 'Subject $subject exceeds balanced distribution',
+        details: {
+          'subject': subject,
+          'currentCount': currentCount,
+          'maxCount': maxCount,
+        },
+        severity: 1, // Minor, can be overridden if necessary
+      );
+    }
+    
+    return null; // No conflicts
   }
 
   /// Prioritizes subjects based on importance and requirements
@@ -1491,72 +1557,6 @@ class TimetableGeneratorService {
     
     if (slotIndex == -1) return false;
     
-    int consecutiveCount = 1;
-    
-    // Check consecutive periods before this slot
-    for (int i = slotIndex - 1; i >= 0; i--) {
-      final prevSlot = timeSlots[i];
-      final lesson = currentTimetable[day]![prevSlot];
-      if (lesson.teacherId == teacherId && lesson.subjectName.isNotEmpty) {
-        consecutiveCount++;
-      } else {
-        break;
-      }
-    }
-    
-    // Check consecutive periods after this slot
-    for (int i = slotIndex + 1; i < timeSlots.length; i++) {
-      final nextSlot = timeSlots[i];
-      final lesson = currentTimetable[day]![nextSlot];
-      if (lesson.teacherId == teacherId && lesson.subjectName.isNotEmpty) {
-        consecutiveCount++;
-      } else {
-        break;
-      }
-    }
-    
-    return consecutiveCount > maxConsecutive;
-  }
-
-  /// Comprehensive validation and conflict reporting system
-  Map<String, dynamic> validateAndReportConflicts({
-    required Map<String, Map<String, ScheduledLesson>> timetable,
-    required Map<String, TimetableConstraint> constraints,
-    required List<String> teachers,
-    required List<String> subjects,
-    required List<String> timeSlots,
-    required List<String> days,
-    required Map<String, dynamic> requirements,
-  }) {
-    final conflicts = <TimetableConflict>[];
-    final suggestions = <Map<String, dynamic>>[];
-    final statistics = <String, dynamic>{};
-    
-    // Initialize statistics
-    statistics['totalPeriods'] = 0;
-    statistics['assignedPeriods'] = 0;
-    statistics['teacherUtilization'] = <String, double>{};
-    statistics['subjectDistribution'] = <String, int>{};
-    statistics['roomUtilization'] = <String, int>{};
-    statistics['conflictSummary'] = {
-      'critical': 0,
-      'major': 0,
-      'minor': 0,
-    };
-    
-    // 1. Teacher Conflict Validation
-    conflicts.addAll(_validateTeacherConflicts(
-      timetable: timetable,
-      constraints: constraints,
-      teachers: teachers,
-      timeSlots: timeSlots,
-      days: days,
-      statistics: statistics,
-    ));
-    
-    // 2. Room Conflict Validation
-    conflicts.addAll(_validateRoomConflicts(
-      timetable: timetable,
       timeSlots: timeSlots,
       days: days,
       statistics: statistics,
