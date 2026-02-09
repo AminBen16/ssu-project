@@ -7,7 +7,7 @@ import 'package:test/services/user_profile_service.dart';
 import 'package:test/services/export_service.dart';
 import 'package:test/models/user_roles.dart';
 import 'package:test/screens/staff_detail_screen.dart';
-import 'package:file_saver/file_saver.dart';
+import 'package:file_picker/file_picker.dart';
 import 'dart:typed_data';
 
 class ViewStaffScreen extends StatefulWidget {
@@ -398,11 +398,10 @@ class _ViewStaffScreenState extends State<ViewStaffScreen> {
       final csvData = await ExportService.exportStaffToExcel(_filteredStaff);
       
       // Save file
-      await FileSaver.instance.saveFile(
-        name: 'staff_${DateTime.now().millisecondsSinceEpoch}.csv',
+      await FilePicker.platform.saveFile(
+        dialogTitle: 'Save Staff CSV',
+        fileName: 'staff_${DateTime.now().millisecondsSinceEpoch}.csv',
         bytes: Uint8List.fromList(csvData.codeUnits),
-        ext: 'csv',
-        mimeType: MimeType.csv,
       );
       
       if (mounted) {
@@ -424,11 +423,10 @@ class _ViewStaffScreenState extends State<ViewStaffScreen> {
       final pdfData = await ExportService.exportStaffToPDF(_filteredStaff);
       
       // Save PDF
-      await FileSaver.instance.saveFile(
-        name: 'staff_${DateTime.now().millisecondsSinceEpoch}.txt',
+      await FilePicker.platform.saveFile(
+        dialogTitle: 'Save Staff PDF',
+        fileName: 'staff_${DateTime.now().millisecondsSinceEpoch}.pdf',
         bytes: pdfData,
-        ext: 'txt',
-        mimeType: MimeType.text,
       );
       
       if (mounted) {

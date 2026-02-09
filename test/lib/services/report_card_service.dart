@@ -6,6 +6,7 @@ import 'package:test/models/user_profile.dart';
 import 'package:test/services/api_client.dart';
 import 'package:test/services/offline_service.dart';
 import 'package:test/services/local_database_service.dart';
+import 'package:logger/logger.dart';
 
 /// A data class to hold all the information needed for a report card.
 class ReportCardData {
@@ -14,6 +15,16 @@ class ReportCardData {
       marks; // {subjectCode: {paperCode: PaperScores}}
 
   ReportCardData({required this.student, required this.marks});
+
+  Map<String, dynamic> toMap() {
+    return {
+      'student': student.toJson(),
+      'marks': marks.map((subjectCode, paperScores) =>
+          MapEntry(subjectCode, paperScores.map((paperCode, scores) =>
+              MapEntry(paperCode, scores.toJson()))
+          )),
+    };
+  }
 }
 
 /// A data class to hold all display data for the report card screen.
@@ -34,8 +45,9 @@ class ReportCardService {
   final ApiClient _apiClient = ApiClient();
   final OfflineService _offlineService = OfflineService();
   final LocalDatabaseService _localDb = LocalDatabaseService();
+  final Logger _logger = Logger();
 
-  /// Fetches the available report terms for a given student from the backend.
+  /// Fetches available report terms for a given student from backend.
   /// Returns a list of maps, each containing a 'term' and 'year'.
   Future<List<Map<String, dynamic>>> getAvailableReportTerms({
     required String schoolId,
@@ -47,27 +59,27 @@ class ReportCardService {
       final List<dynamic> data = response ?? [];
       return data.cast<Map<String, dynamic>>();
     } catch (e) {
-      debugPrint('Error fetching available report terms: $e');
-      rethrow;
+      _logger.e('Error fetching available report terms: $e');
+      return [];
     }
   }
 
-  /// Fetches all data required to generate and display a report card.
-  Future<ReportCardDisplayData?> getReportCardDisplayData({
+  /// Fetches complete report card data for a student for a specific term/year.
+  Future<ReportCardDisplayData?> getStudentReportCard({
     required String schoolId,
     required String studentId,
     required String term,
-    required int year,
+    required String year,
   }) async {
-    // Fetch the core report data (student and marks)
-    final reportData = await getReportCardData(
-      schoolId: schoolId,
-      studentId: studentId,
-      term: term,
-      year: year,
-    );
+    try {
+      final reportData = await getReportCardData(
+        schoolId: schoolId,
+        studentId: studentId,
+        term: term,
+        year: int.parse(year),
+      );
 
-    if (reportData == null) return null;
+      if (reportData == null) return null;
 
     // Fetch the class teacher and head teacher in parallel for efficiency.
     final teacherFutures = await Future.wait([
@@ -84,6 +96,10 @@ class ReportCardService {
       classTeacher: classTeacher,
       headTeacher: headTeacher,
     );
+    } catch (e) {
+      _logger.e('Error fetching student report card: $e');
+      return null;
+    }
   }
 
   /// Fetches all data required to generate a report card for a specific student and term.

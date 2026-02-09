@@ -40,10 +40,10 @@ class _FeeCollectionScreenState extends State<FeeCollectionScreen> {
     final schoolId = userData.school?.id.toString();
 
     if (schoolId != null) {
-      // For admin/bursar view, we need to get all payments across all parents
-      // This is a simplified version - in reality, we'd need an admin endpoint
+      // SAFE PATCH: Replace placeholder with real fee service integration
+      // UI exists, Service exists, Logic missing - now fixed
       setState(() {
-        _feePaymentsFuture = Future.value([]); // Placeholder
+        _feePaymentsFuture = parentFeeService.getAllPaymentsForSchool(schoolId);
       });
     }
   }
@@ -89,23 +89,28 @@ class _FeeCollectionScreenState extends State<FeeCollectionScreen> {
                     const Text('Filter: '),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedFilter,
-                        items: ['All', 'Completed', 'Pending', 'Failed']
-                            .map((filter) => DropdownMenuItem(
-                                  value: filter,
-                                  child: Text(filter),
-                                ))
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedFilter = value!;
-                          });
-                        },
+                      child: InputDecorator(
                         decoration: const InputDecoration(
                           isDense: true,
                           contentPadding:
                               EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedFilter,
+                            isDense: true,
+                            items: ['All', 'Completed', 'Pending', 'Failed']
+                                .map((filter) => DropdownMenuItem(
+                                      value: filter,
+                                      child: Text(filter),
+                                    ))
+                                .toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedFilter = value!;
+                              });
+                            },
+                          ),
                         ),
                       ),
                     ),

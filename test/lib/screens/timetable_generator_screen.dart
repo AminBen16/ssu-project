@@ -4,6 +4,8 @@ import 'package:test/services/timetable_service.dart';
 import 'package:test/providers/user_data_provider.dart';
 import 'package:test/widgets/loading_button.dart';
 import 'package:test/services/timetable_generator_service.dart';
+import 'package:test/services/local_database_service.dart';
+import 'package:test/services/staff_service.dart';
 
 class TimetableGeneratorScreen extends StatefulWidget {
   final String className;
@@ -29,15 +31,19 @@ class _TimetableGeneratorScreenState extends State<TimetableGeneratorScreen> {
     ).school!.id.toString();
 
     try {
-      final generatedData = await _generatorService.generateClassTimetable(
+      final generatedData = await _generatorService.generateEnhancedTimetable(
         schoolId: schoolId,
-        className: widget.className,
+        localDb: LocalDatabaseService(),
+        staffService: StaffService(),
+        requirements: {}, // Add required parameter
+        roomData: {}, // Add required parameter
       );
 
       await _timetableService.saveFullTimetable(
         schoolId: schoolId,
         className: widget.className,
-        timetable: generatedData,
+        timetable:
+            generatedData['timetable'] ?? {}, // Extract timetable from result
       );
 
       if (mounted) {

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -10,6 +11,7 @@ class CurriculumDatabaseService {
   static Database? _database;
   static const String _dbName = 'curriculum_database.db';
   static const int _dbVersion = 2;
+  static bool _seeded = false;
 
   static Future<Database> get database async {
     _database ??= await _initDatabase();
@@ -26,6 +28,224 @@ class CurriculumDatabaseService {
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
+  }
+
+  /// Ensure curriculum database is seeded from bundled assets if empty.
+  static Future<void> ensureSeededFromAssets() async {
+    if (_seeded) return;
+    final stats = await getCurriculumStatistics();
+    if ((stats['subjects'] as int? ?? 0) > 0) {
+      _seeded = true;
+      return;
+    }
+    await _seedFromAssets();
+    _seeded = true;
+  }
+
+  static Future<void> _seedFromAssets() async {
+    final alevelData = await _loadAssetData('assets/data/alevel_data.json');
+    final olevelData = await _loadAssetData('assets/data/olevel_data.json');
+    final allEntries = <Map<String, dynamic>>[
+      ...alevelData,
+      ...olevelData,
+    ];
+
+    if (allEntries.isEmpty) return;
+
+    final db = await database;
+    await db.transaction((txn) async {
+      final subjectKeyToId = <String, int>{};
+      final strandKeyToId = <String, int>{};
+      final topicKeyToId = <String, int>{};
+      final subjectIssues = <String, Set<String>>{};
+      final subjectSkills = <String, Set<String>>{};
+
+      for (final entry in allEntries) {
+        final subjectName = (entry['subject'] ?? '').toString().trim();
+        if (subjectName.isEmpty) continue;
+        final educationLevel = (entry['level'] ?? '').toString().trim();
+        final className = (entry['class'] ?? '').toString().trim();
+        final strandName = (entry['strand'] ?? '').toString().trim();
+        final topicName = (entry['topic'] ?? '').toString().trim();
+        final topicCode = (entry['topic_code'] ?? '').toString().trim();
+        final suggestedPeriods = entry['suggested_periods'] as int?;
+
+        final subjectKey = '${subjectName.toLowerCase()}|${educationLevel.toLowerCase()}';
+        final subjectId = subjectKeyToId[subjectKey] ??
+            await txn.insert('subjects', {
+              'name': subjectName,
+              'education_level': educationLevel,
+              'class_name': className,
+              'period_duration': null,
+              'periods_per_week': null,
+              'description': null,
+              'rationale': null,
+            });
+        subjectKeyToId[subjectKey] = subjectId;
+
+        final strandKey = '${subjectId}|${strandName.toLowerCase()}';
+        final strandId = strandKeyToId[strandKey] ??
+            await txn.insert('strands', {
+              'subject_id': subjectId,
+              'name': strandName.isEmpty ? 'General' : strandName,
+              'code': null,
+              'description': null,
+              'term': null,
+              'senior_level': className,
+              'duration_periods': null,
+              'order_index': null,
+            });
+        strandKeyToId[strandKey] = strandId;
+
+        if (topicName.isEmpty) continue;
+        final topicKey = '${strandId}|${topicName.toLowerCase()}';
+        final topicId = topicKeyToId[topicKey] ??
+            await txn.insert('topics', {
+              'strand_id': strandId,
+              'name': topicName,
+              'code': topicCode.isEmpty ? null : topicCode,
+              'description': null,
+              'competency': null,
+              'duration_periods': suggestedPeriods,
+              'term': null,
+              'class_name': className,
+              'order_index': null,
+            });
+        topicKeyToId[topicKey] = topicId;
+
+        final competences = (entry['competences'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+        for (final competence in competences) {
+          final competenceText = (competence['text'] ?? '').toString().trim();
+          if (competenceText.isNotEmpty) {
+            await txn.insert('competencies', {
+              'topic_id': topicId,
+              'competency_type': (competence['competency_type'] ?? '').toString(),
+              'text': competenceText,
+              'assessment_criteria': jsonEncode(competence['assessment_criteria'] ?? []),
+              'key_concepts': jsonEncode(competence['key_concepts'] ?? []),
+              'order_index': null,
+            });
+          }
+
+          final outcomes = (competence['learning_outcomes'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+          for (int i = 0; i < outcomes.length; i++) {
+            final outcome = outcomes[i];
+            final outcomeText = (outcome['text'] ?? '').toString().trim();
+            if (outcomeText.isEmpty) continue;
+
+            final outcomeId = await txn.insert('learning_outcomes', {
+              'topic_id': topicId,
+              'sub_topic_id': null,
+              'outcome_text': outcomeText,
+              'outcome_type': (outcome['outcome_type'] ?? '').toString(),
+              'lesson_unit': (outcome['lesson_unit'] ?? '').toString(),
+              'order_index': i,
+            });
+
+            final activities = (outcome['activities'] as List?)?.map((e) => e.toString()).toList() ?? [];
+            for (int a = 0; a < activities.length; a++) {
+              await txn.insert('activities', {
+                'learning_outcome_id': outcomeId,
+                'activity_text': activities[a],
+                'description': null,
+                'activity_type': null,
+                'order_index': a,
+              });
+            }
+
+            final materials = (outcome['materials'] as List?)?.map((e) => e.toString()).toList() ?? [];
+            for (int m = 0; m < materials.length; m++) {
+              await txn.insert('materials', {
+                'learning_outcome_id': outcomeId,
+                'material_name': materials[m],
+                'material_type': materials[m],
+                'description': null,
+                'order_index': m,
+              });
+            }
+
+            final assessment = (outcome['assessment'] as Map?)?.cast<String, dynamic>() ?? {};
+            final assessmentMethod = (assessment['method'] ?? assessment['guidance'] ?? 'Assessment').toString();
+            await txn.insert('assessments', {
+              'learning_outcome_id': outcomeId,
+              'assessment_method': assessmentMethod,
+              'guidance': assessment['guidance']?.toString(),
+              'mode': assessment['mode']?.toString(),
+              'exam_eligibility': assessment['exam_eligibility']?.toString(),
+              'weighting': assessment['weighting']?.toString(),
+              'order_index': 0,
+            });
+
+            final ictIntegration = (outcome['ict_integration'] as List?)?.map((e) => e.toString()).toList() ?? [];
+            for (int t = 0; t < ictIntegration.length; t++) {
+              await txn.insert('ict_integration', {
+                'learning_outcome_id': outcomeId,
+                'ict_tool': ictIntegration[t],
+                'description': null,
+                'integration_level': null,
+                'order_index': t,
+              });
+            }
+
+            final teachingStrategies = (outcome['teaching_strategies'] as List?)?.map((e) => e.toString()).toList() ?? [];
+            for (int s = 0; s < teachingStrategies.length; s++) {
+              await txn.insert('teaching_strategies', {
+                'learning_outcome_id': outcomeId,
+                'strategy_name': teachingStrategies[s],
+                'description': null,
+                'strategy_type': null,
+                'order_index': s,
+              });
+            }
+
+            final issues = (outcome['cross_cutting_issues'] as List?)?.map((e) => e.toString()).toList() ?? [];
+            if (issues.isNotEmpty) {
+              subjectIssues.putIfAbsent(subjectKey, () => <String>{}).addAll(issues);
+            }
+
+            final skills = (outcome['generic_skills'] as List?)?.map((e) => e.toString()).toList() ?? [];
+            if (skills.isNotEmpty) {
+              subjectSkills.putIfAbsent(subjectKey, () => <String>{}).addAll(skills);
+            }
+          }
+        }
+      }
+
+      // Insert cross-cutting issues and generic skills per subject
+      for (final entry in subjectIssues.entries) {
+        final subjectId = subjectKeyToId[entry.key];
+        if (subjectId == null) continue;
+        for (final issue in entry.value) {
+          await txn.insert('cross_cutting_issues', {
+            'subject_id': subjectId,
+            'issue_name': issue,
+            'description': null,
+          });
+        }
+      }
+
+      for (final entry in subjectSkills.entries) {
+        final subjectId = subjectKeyToId[entry.key];
+        if (subjectId == null) continue;
+        for (final skill in entry.value) {
+          await txn.insert('generic_skills', {
+            'subject_id': subjectId,
+            'skill_name': skill,
+            'description': null,
+          });
+        }
+      }
+    });
+  }
+
+  static Future<List<Map<String, dynamic>>> _loadAssetData(String path) async {
+    try {
+      final content = await rootBundle.loadString(path);
+      final List<dynamic> data = jsonDecode(content);
+      return data.cast<Map<String, dynamic>>();
+    } catch (_) {
+      return [];
+    }
   }
 
   static Future<void> _onCreate(Database db, int version) async {

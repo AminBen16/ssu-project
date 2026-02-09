@@ -159,10 +159,10 @@ class _ChildInfoCardState extends State<ChildInfoCard>
     try {
       final feeBalance = await _balanceFuture;
       final pdfBytes = await _pdfService.generatePaymentDetailsPdf(
-        student: widget.child,
-        balance: balance,
-        feeBalance: feeBalance,
-        school: school,
+        widget.child,
+        balance,
+        feeBalance,
+        school,
       );
       final tempDir = await getTemporaryDirectory();
       final fileName =
@@ -189,10 +189,10 @@ class _ChildInfoCardState extends State<ChildInfoCard>
     if (school == null) return;
     final feeBalance = await _balanceFuture;
     final pdfBytes = await _pdfService.generatePaymentDetailsPdf(
-      student: widget.child,
-      balance: balance,
-      feeBalance: feeBalance,
-      school: school,
+      widget.child,
+      balance,
+      feeBalance,
+      school,
     );
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => pdfBytes,
@@ -215,10 +215,10 @@ class _ChildInfoCardState extends State<ChildInfoCard>
     try {
       final feeBalance = await _balanceFuture;
       final pdfBytes = await _pdfService.generatePaymentDetailsPdf(
-        student: widget.child,
-        balance: balance,
-        feeBalance: feeBalance,
-        school: school,
+        widget.child,
+        balance,
+        feeBalance,
+        school,
       );
       await FilePicker.platform.saveFile(
         dialogTitle: 'Save Payment Details',

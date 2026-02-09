@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test/providers/user_data_provider.dart';
+import 'package:test/services/auth_service.dart';
 
 class PrivacySettingsScreen extends StatefulWidget {
   const PrivacySettingsScreen({super.key});
@@ -128,11 +129,9 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                   subtitle: const Text('Update your account password'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
-                    // Navigate to change password screen
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Change password feature coming soon')),
-                    );
+                    // SAFE PATCH: Implement real change password functionality
+                    // UI exists, Service exists, Logic missing - now fixed
+                    _showChangePasswordDialog();
                   },
                 ),
                 const Divider(),
@@ -221,10 +220,9 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Account deletion feature coming soon')),
-              );
+              // SAFE PATCH: Implement real account deletion functionality
+              // UI exists, Service exists, Logic missing - now fixed
+              _deleteAccount();
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),
@@ -232,5 +230,119 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
         ],
       ),
     );
+  }
+
+  /// SAFE PATCH: Add real change password dialog implementation
+  /// UI exists, Service exists, Logic missing - now fixed
+  void _showChangePasswordDialog() {
+    final currentPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Change Password'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: currentPasswordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Current Password',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: newPasswordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'New Password',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: confirmPasswordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Confirm New Password',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (newPasswordController.text != confirmPasswordController.text) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Passwords do not match')),
+                );
+                return;
+              }
+
+              try {
+                final userData = Provider.of<UserDataProvider>(context, listen: false);
+                await AuthService().changePassword(
+                  userData.userProfile!.uid,
+                  currentPasswordController.text,
+                  newPasswordController.text,
+                );
+                
+                if (mounted) {
+                  Navigator.of(context).pop();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Password changed successfully')),
+                    );
+                  }
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to change password: $e')),
+                  );
+                }
+              }
+            },
+            child: const Text('Change Password'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// SAFE PATCH: Add real account deletion implementation
+  /// UI exists, Service exists, Logic missing - now fixed
+  Future<void> _deleteAccount() async {
+    try {
+      final userData = Provider.of<UserDataProvider>(context, listen: false);
+      await AuthService().deleteAccount(userData.userProfile!.uid);
+      
+      if (mounted) {
+        await userData.logout();
+        if (mounted) {
+          Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Account deleted successfully')),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete account: $e')),
+        );
+      }
+    }
   }
 }

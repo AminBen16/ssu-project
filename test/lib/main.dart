@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:test/providers/user_data_provider.dart';
+import 'package:test/providers/theme_provider.dart';
 import 'package:test/services/communication_service.dart';
 import 'package:test/services/auxiliary_services.dart';
 import 'package:test/services/platform_channels.dart';
@@ -10,6 +11,7 @@ import 'package:test/services/transport_manager.dart';
 import 'package:test/services/message_storage.dart';
 import 'package:test/services/local_database_service.dart';
 import 'package:test/widgets/auth_wrapper.dart';
+import 'package:test/navigation/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +36,7 @@ void main() async {
   final localDeviceId = 'device_${DateTime.now().millisecondsSinceEpoch}';
   final encryptionKey = 'school-mesh-secret-key-2024';
 
-  final transportManager = LocalTransportManager(localDeviceId);
+  final transportManager = MultiTransportManager(localDeviceId);
   final peerDiscovery = LocalPeerDiscovery();
 
   // Initialize platform channels conditionally based on platform

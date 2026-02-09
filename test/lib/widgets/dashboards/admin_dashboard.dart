@@ -6,7 +6,6 @@ import 'package:test/screens/view_staff_screen.dart';
 import 'package:test/screens/staff_enrollment_screen.dart';
 import 'package:test/screens/salary_management_screen.dart';
 import 'package:test/screens/student_list_screen.dart';
-import 'package:test/screens/report_card_screen.dart';
 import 'package:test/screens/class_stream_management_screen.dart';
 import 'package:test/screens/manage_books_screen.dart';
 import 'package:test/screens/scheme_of_work_list_screen.dart';
@@ -15,6 +14,7 @@ import 'package:test/screens/exam_list_screen.dart';
 import 'package:test/screens/school_settings_screen.dart';
 import 'package:test/screens/salary_history_screen.dart';
 import 'package:test/screens/performance_analyzer_screen.dart';
+import 'package:test/screens/student_reports_selection_screen.dart';
 import 'package:test/widgets/fee_summary_card.dart';
 import 'package:test/providers/user_data_provider.dart';
 import 'package:test/services/user_profile_service.dart';
@@ -141,8 +141,8 @@ class AdminDashboard extends StatelessWidget {
                           icon: Icons.assessment,
                           onTap: () {
                             Navigator.of(context).push(MaterialPageRoute(
-                              builder: (_) => const ReportCardScreen(
-                                  studentId: '', term: '', year: '0'),
+                              builder: (_) =>
+                                  const StudentReportsSelectionScreen(),
                             ));
                           },
                         ),

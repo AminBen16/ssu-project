@@ -82,9 +82,20 @@ class TeacherDashboard extends StatelessWidget {
         icon: Icons.account_balance_wallet_outlined,
         label: 'My Salary History',
         color: Colors.transparent,
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const SalaryHistoryScreen()), //
-        ),
+        onTap: () {
+          final userProfile =
+              Provider.of<UserDataProvider>(context, listen: false).userProfile;
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => SalaryHistoryScreen(
+                staffId: userProfile?.uid,
+                staffName:
+                    '${userProfile?.firstName ?? ''} ${userProfile?.lastName ?? ''}'
+                        .trim(),
+              ),
+            ),
+          );
+        },
       ),
     ];
   }
@@ -95,7 +106,8 @@ class TeacherDashboard extends StatelessWidget {
     final userProfile = userData.userProfile;
 
     ImageProvider? backgroundImage;
-    if (userProfile?.profilePictureUrl != null && userProfile!.profilePictureUrl!.isNotEmpty) {
+    if (userProfile?.profilePictureUrl != null &&
+        userProfile!.profilePictureUrl!.isNotEmpty) {
       backgroundImage =
           CachedNetworkImageProvider(userProfile.profilePictureUrl!);
     }

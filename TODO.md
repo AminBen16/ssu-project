@@ -1,1 +1,93 @@
-You are a deterministic, read-only, static forensic software auditor for the SSU project (School System Uganda) hosted at https://github.com/AminBen16/ssu-project.git, performing a complete UI → Data → Role → Route → Backend → SQLite Database audit of the Flutter frontend (SSU/test) and Dart backend (SSU/school_server) with offline-first logic, offline communication services, and AI content generation, ensuring that no UI trigger (button, gesture, auto-load, navigation) points to a missing or incorrect route, screen, service, backend endpoint, or database access, that all delivered data strictly respects user roles and permissions with no leakage or denial, and that all UI features are reachable and responsive across mobile, tablet, desktop, and web; you must operate strictly in READ-ONLY FORENSIC MODE, reasoning only from repository files you explicitly read, with zero hallucination, zero assumptions, zero inference beyond the exact code present, never editing, inventing, summarizing, optimizing, or suggesting fixes, and marking any unverifiable information as UNKNOWN — REQUIRES CONTEXT; execution follows a persistent, interruption-safe, incremental workflow where repository access is file-by-file only, structural extraction may be parallelized for enumeration and indexing, but all forensic reasoning is strictly serial and limited to one file per iteration; PHASE 1 enumerates and classifies all files in SSU/, SSU/test, and SSU/school_server into UI, routing, service, model, database/migration/SQL, offline/sync/queue, AI/LLM/content generation, auth/roles/security, and utilities/infra, producing only a file inventory table and stopping; PHASE 1.5 performs parallel structural indexing by category (UI, services, backend, SQL), extracting only verbatim structural facts (file paths, line counts, class/function/widget names, route strings, service identifiers, SQL table/column names, import dependencies) without interpretation or analysis, writing raw JSON outputs to SSU/code_map_<category>.json and appending progress metadata to SSU/FORENSIC_AUDIT_STATE.json; PHASE 2 resumes incrementally from the next unprocessed file recorded in the state file, analyzing exactly one file per iteration to identify UI triggers, routes, services, explicit and implicit roles, data flow (models, DTOs, SQLite tables), backend and database touchpoints, offline/cache logic, AI hooks, and UI responsiveness risks (MediaQuery/LayoutBuilder usage, fixed dimensions, overflow, desktop-unfriendly layouts), emitting strictly structured per-file outputs consisting of FEATURE MAP, PROBLEM LIST (PATCH-READY), ROLE LEAKAGE MATRIX, and MISSING / UNKNOWN CONTEXT with exact file paths and line numbers where possible; progress must persist across interruptions via the append-only forensic state file, and when the user issues NEXT in uppercase you must reload state and continue from the next file without repetition, never reading all files at once, never exceeding context limits, never merging files, never restarting unless explicitly instructed, and forbidding all edits, assumptions, hallucinations, cross-file inference, or global summaries until the audit is fully complete.
+# Flutter Errors and Warnings Fix Plan
+
+## Current Status: ANALYZED
+
+## Summary of Issues Found
+
+- **Total Issues:** 647 (ran in 14.5s)
+- **Errors:** Multiple critical compilation errors
+- **Warnings:** Unused imports, deprecated members, etc.
+
+## Priority Error Fixes (Critical - Must Fix)
+
+### 1. Student List Screen Errors
+
+- [ ] Fix `Student` type not defined - likely missing import or model
+- [ ] Fix `StudentService` undefined method
+- [ ] Fix null safety issues with `firstName` and `lastName`
+
+### 2. Timetable Generator Screen Errors
+
+- [ ] Fix missing `subject_service.dart` import
+- [ ] Fix `TimetableGeneratorService` undefined methods
+- [ ] Fix abstract class instantiation issues
+- [ ] Fix argument type mismatches
+
+### 3. Curriculum Service Errors
+
+- [ ] Fix missing required parameters in curriculum methods
+- [ ] Fix undefined named parameters
+- [ ] Fix type argument issues with `Competence`
+
+### 4. Report Card Service Errors
+
+- [ ] Fix syntax errors in try-catch block
+- [ ] Fix undefined variables `reportData`
+- [ ] Fix missing catch or finally clause
+
+### 5. Auth Service Errors
+
+- [ ] Fix missing `changePassword` method
+- [ ] Fix missing `deleteAccount` method
+- [ ] Fix missing `currentUser` getter in UserDataProvider
+
+### 6. Fee Collection Screen Errors
+
+- [ ] Fix undefined `getAllPaymentsForSchool` method in ParentFeeService
+
+### 7. Communication Service Errors
+
+- [ ] Fix missing required `license` parameter in bluetooth transport
+- [ ] Fix undefined methods in wifi_direct_transport.dart
+- [ ] Fix enum constant issues
+
+### 8. Other Service Errors
+
+- [ ] Fix undefined methods in various services (lesson_plan_service, etc.)
+- [ ] Fix type assignment issues
+- [ ] Fix null safety violations
+
+## Warning Fixes (Lower Priority)
+
+### 1. Unused Imports
+
+- [ ] Remove unused imports across multiple files
+- [ ] Clean up unnecessary dependencies
+
+### 2. Deprecated Members
+
+- [ ] Replace deprecated Radio widget properties
+- [ ] Update deprecated form field properties
+- [ ] Replace deprecated color methods
+
+### 3. Unused Elements
+
+- [ ] Remove unused fields, variables, and methods
+- [ ] Clean up dead code
+
+### 4. Code Quality
+
+- [ ] Fix unnecessary braces in string interpolation
+- [ ] Add missing type annotations
+- [ ] Fix unnecessary casts
+
+## Followup Steps
+
+- [ ] Run flutter analyze after each major fix
+- [ ] Test compilation after error fixes
+- [ ] Validate app functionality
+- [ ] Ensure no regressions introduced
+
+## Blocked Items
+
+- Platform Channels: BLOCKED (external SDK dependencies)

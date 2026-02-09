@@ -128,16 +128,3 @@ abstract class CommunicationService {
   Future<List<Peer>> getConnectedPeers();
   Future<NetworkStatus> getNetworkStatus();
 }
-
-/// Status of the mesh network
-class MeshStatus {
-  final bool isEnabled;
-  final bool isConnected;
-  final int connectedPeersCount;
-
-  MeshStatus({
-    this.isEnabled = false,
-    this.isConnected = false,
-    this.connectedPeersCount = 0,
-  });
-}

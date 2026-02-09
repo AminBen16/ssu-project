@@ -223,10 +223,26 @@ class ParentCommunicationService {
   /// Update read status of a message in local cache
   Future<void> _updateLocalMessageReadStatus(
       String messageId, bool isRead) async {
-    final cached = await _localDb.getData('parent_message', messageId);
-    if (cached != null) {
-      cached['isRead'] = isRead;
-      await _localDb.saveData('parent_message', messageId, cached);
+    // Find the message across all parent message caches
+    final allParentData = await _localDb.getAllData('parent_messages');
+    for (final entry in allParentData) {
+      final parentId = entry['id'] as String;
+      final cachedData = await _localDb.getData('parent_messages', parentId);
+      if (cachedData != null && cachedData['messages'] != null) {
+        final messages =
+            List<Map<String, dynamic>>.from(cachedData['messages']);
+        final messageIndex = messages.indexWhere((m) => m['id'] == messageId);
+        if (messageIndex != -1) {
+          messages[messageIndex]['isRead'] = isRead;
+          messages[messageIndex]['lastUpdated'] =
+              DateTime.now().toIso8601String();
+          await _localDb.saveData('parent_messages', parentId, {
+            'messages': messages,
+            'lastUpdated': DateTime.now().toIso8601String(),
+          });
+          break; // Found and updated, exit loop
+        }
+      }
     }
   }
 

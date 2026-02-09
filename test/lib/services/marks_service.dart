@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
+import 'curriculum_database_service.dart';
 
 /// Service for managing student marks and grades
 class MarksService {
@@ -139,7 +141,12 @@ class MarksService {
       WHERE student_id = ?
     ''', [studentId]);
     
-    return result.first['average'] as double? ?? 0.0;
+    // Safe access - check if result is not empty before accessing .first
+    if (result.isNotEmpty) {
+      return result.first['average'] as double? ?? 0.0;
+    }
+    
+    return 0.0; // Default average when no marks exist
   }
 
   static String _calculateGrade(double percentage) {
@@ -182,7 +189,7 @@ class MarksService {
     return await db.delete('marks', where: 'id = ?', whereArgs: [markId]);
   }
 
-  static Future<Map<String, dynamic>> getStudentGrades(int schoolId, String studentId) async {
+  static Future<Map<String, dynamic>> getStudentGrades(int schoolId, int studentId) async {
     final db = await database;
     final marks = await db.query(
       'marks',
@@ -222,7 +229,7 @@ class MarksService {
         subjectCount++;
 
         subjectGrades.add({
-          'subject': 'Subject ${latestMark['subject_id']}', // TODO: Get actual subject name
+          'subject': await _getSubjectName(latestMark['subject_id'] as int), // Resolve actual name
           'grade': grade,
           'score': percentage,
         });
@@ -262,5 +269,22 @@ class MarksService {
     if (gpa >= 2.0) return 'C';
     if (gpa >= 1.0) return 'D';
     return 'F';
+  }
+
+  /// Helper method to resolve subject name from subject ID
+  /// Uses existing subjects table from curriculum database
+  static Future<String> _getSubjectName(int subjectId) async {
+    try {
+      // Use curriculum database service to access subjects table
+      final subject = await CurriculumDatabaseService.getSubjectById(subjectId);
+      if (subject != null) {
+        return subject.name;
+      }
+    } catch (e) {
+      // If curriculum database is not available, fallback to placeholder
+      debugPrint('Error fetching subject name: $e');
+    }
+    
+    return 'Subject $subjectId'; // Fallback to existing placeholder format
   }
 }

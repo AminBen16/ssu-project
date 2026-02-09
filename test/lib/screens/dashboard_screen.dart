@@ -8,6 +8,8 @@ import 'package:test/widgets/dashboards/dashboards.dart';
 import 'package:test/screens/system_admin_dashboard_screen.dart';
 
 import 'package:test/widgets/voice_assistant_panel.dart';
+import 'package:test/screens/pending_user_screen.dart';
+import 'package:test/screens/unknown_role_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -142,6 +144,10 @@ class DashboardScreen extends StatelessWidget {
       case UserRole.storeKeeper:
       case UserRole.boardingMaster:
         return const StaffDashboard();
+      case UserRole.pending:
+        return const PendingUserScreen();
+      case UserRole.unknown:
+        return const UnknownRoleScreen();
       default:
         return Center(
           child: Text('Welcome! Your role is: ${role.displayName}'),

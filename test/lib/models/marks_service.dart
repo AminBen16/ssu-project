@@ -156,4 +156,50 @@ class MarksService {
 
     return marksByStudent;
   }
+
+  /// Fetches overall grades and GPA for a student with offline support.
+  /// WHY this was missing: Student dashboard grades section was using mock data instead of real service calls.
+  /// WHAT this enables: Real-time grade display for students with proper offline caching.
+  /// WHY this is safe: Non-breaking addition with offline fallback and TODO for backend.
+  Future<Map<String, dynamic>> getStudentGrades(int studentId) async {
+    final online = await _offlineService.isOnline;
+    if (online) {
+      try {
+        // TODO(BACKEND): implement endpoint /api/marks/student-grades/{studentId}
+        // This should return overall grade, GPA, and recent subject grades
+        final response =
+            await _apiClient.get('/api/marks/student-grades/$studentId');
+
+        // Cache the result
+        await _localDb.saveData('student_grades', studentId.toString(), {
+          ...response,
+          'lastUpdated': DateTime.now().toIso8601String(),
+        });
+
+        return response;
+      } catch (e) {
+        // Fall back to cached data
+        final cached =
+            await _localDb.getData('student_grades', studentId.toString());
+        if (cached != null) {
+          return Map<String, dynamic>.from(cached);
+        }
+        rethrow;
+      }
+    } else {
+      // Return cached data
+      final cached =
+          await _localDb.getData('student_grades', studentId.toString());
+      if (cached != null) {
+        return Map<String, dynamic>.from(cached);
+      }
+      // Return empty data if no cache
+      return {
+        'overallGrade': 'N/A',
+        'gpa': 0.0,
+        'recentSubjects': [],
+        'lastUpdated': null,
+      };
+    }
+  }
 }

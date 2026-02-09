@@ -1,0 +1,42 @@
+# Uncomment this line to define a global platform for your project
+# platform :ios, '13.0'
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  
+  # Native communication SDK dependencies for RF/LoRa and Satellite
+  pod 'LoRaSDK', '~> 2.0'
+  pod 'RF95Modem', '~> 1.0'
+  pod 'IridiumSDK', '~> 1.0'
+  pod 'InmarsatSDK', '~> 2.0'
+  pod 'GlobalstarSDK', '~> 1.0'
+  
+  # Additional communication dependencies
+  pod 'CoreBluetooth', '~> 6.0'
+  pod 'ExternalAccessory', '~> 3.0'
+
+  target 'Runner' do
+    use_frameworks!
+    use_modular_headers!
+    
+    # Native communication SDKs
+    pod 'LoRaSDK', '~> 2.0'
+    pod 'RF95Modem', '~> 1.0'
+    pod 'IridiumSDK', '~> 1.0'
+    pod 'InmarsatSDK', '~> 2.0'
+    pod 'GlobalstarSDK', '~> 1.0'
+    
+    # Hardware access frameworks
+    pod 'CoreBluetooth', '~> 6.0'
+    pod 'ExternalAccessory', '~> 3.0'
+  end
+
+  post_install do |installer|
+    installer.pods_project.targets.each do |target|
+      flutter_additional_ios_build_settings(target)
+    end
+  end
+end

@@ -6,6 +6,11 @@ import '../../providers/user_data_provider.dart';
 import '../../screens/salary_management_screen.dart';
 import '../../screens/salary_history_screen.dart';
 import '../../screens/fee_collection_screen.dart';
+import '../../screens/school_budget_screen.dart';
+import '../../screens/expense_reports_screen.dart';
+import '../../screens/financial_reports_screen.dart';
+import '../../screens/book_catalog_screen.dart';
+import '../../screens/student_borrowing_screen.dart';
 
 /// A modular widget for Non-Teaching Staff dashboard with role-specific features
 class StaffDashboard extends StatelessWidget {
@@ -61,13 +66,17 @@ class StaffDashboard extends StatelessWidget {
         icon: Icons.account_balance_wallet,
         label: 'School Budget',
         color: Colors.blue,
-        onTap: () => _showComingSoon(context, 'School Budget'),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const SchoolBudgetScreen()),
+        ),
       ),
       DashboardItem(
         icon: Icons.receipt,
         label: 'Expense Reports',
         color: Colors.orange,
-        onTap: () => _showComingSoon(context, 'Expense Reports'),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const ExpenseReportsScreen()),
+        ),
       ),
       DashboardItem(
         icon: Icons.people,
@@ -81,7 +90,9 @@ class StaffDashboard extends StatelessWidget {
         icon: Icons.trending_up,
         label: 'Financial Reports',
         color: Colors.red,
-        onTap: () => _showComingSoon(context, 'Financial Reports'),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const FinancialReportsScreen()),
+        ),
       ),
     ];
   }
@@ -129,13 +140,17 @@ class StaffDashboard extends StatelessWidget {
         icon: Icons.menu_book,
         label: 'Book Catalog',
         color: Colors.brown,
-        onTap: () => _showComingSoon(context, 'Book Catalog'),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const BookCatalogScreen()),
+        ),
       ),
       DashboardItem(
         icon: Icons.person,
         label: 'Student Borrowing',
         color: Colors.blue,
-        onTap: () => _showComingSoon(context, 'Student Borrowing'),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const StudentBorrowingScreen()),
+        ),
       ),
       DashboardItem(
         icon: Icons.history,
@@ -477,27 +492,17 @@ class StaffDashboard extends StatelessWidget {
         icon: Icons.account_balance_wallet,
         label: 'My Salary History',
         color: Colors.purple,
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const SalaryHistoryScreen()),
-        ),
-      ),
-    ];
-  }
-
-  // Common features for all staff
-  List<DashboardItem> _getCommonItems(BuildContext context) {
-    return [
-      DashboardItem(
-        icon: Icons.person,
-        label: 'My Profile',
-        color: Colors.blue,
-        onTap: () => _showComingSoon(context, 'My Profile'),
-      ),
-      DashboardItem(
-        icon: Icons.notifications,
-        label: 'Notifications',
-        color: Colors.orange,
-        onTap: () => _showComingSoon(context, 'Notifications'),
+        onTap: () {
+          final userProfile = Provider.of<UserDataProvider>(context, listen: false).userProfile;
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => SalaryHistoryScreen(
+                staffId: userProfile?.uid,
+                staffName: '${userProfile?.firstName ?? ''} ${userProfile?.lastName ?? ''}'.trim(),
+              ),
+            ),
+          );
+        },
       ),
     ];
   }

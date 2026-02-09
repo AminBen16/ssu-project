@@ -90,8 +90,13 @@ class _UserOnboardingScreenState extends State<UserOnboardingScreen> {
         isFirstTimeSetupComplete: true, // Mark setup as complete
       );
 
-      // Refresh the user profile to get the latest data from the server.
+      // PATCH: Wait for profile refresh to complete before navigation
       await userData.refreshUserProfile();
+      
+      // CRITICAL: Verify profile was successfully refreshed
+      if (userData.userProfile == null) {
+        throw Exception('Profile refresh failed - cannot proceed to dashboard');
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

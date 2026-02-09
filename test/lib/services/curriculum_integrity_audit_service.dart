@@ -322,7 +322,7 @@ class CurriculumIntegrityAuditService {
       final fkCheck = await db.rawQuery('PRAGMA foreign_key_list(strands)');
       relationshipValidation['details'].add('Found ${fkCheck.length} foreign key constraints on strands table');
 
-      // Check cascade delete behavior
+      // Test cascade delete with proper cleanup
       final testSubject = EnhancedSubject(
         name: 'Test Subject',
         educationLevel: 'Test',

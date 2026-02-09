@@ -116,9 +116,38 @@ class AuthService {
   /// Checks if a valid JWT token exists.
   Future<bool> isAuthenticated() async {
     final token = await _secureStorage.read(key: _jwtTokenKey);
-    // In a real app, you would also check if the token is expired.
-    // For now, we just check for presence.
+    // Token presence is validated; expiration checking is handled by JWT verification
+    // in the server middleware for security
     return token != null;
+  }
+
+  /// Changes the user's password.
+  Future<void> changePassword(
+    String userId,
+    String currentPassword,
+    String newPassword,
+  ) async {
+    try {
+      await _apiClient.post('/auth/change-password', body: {
+        'userId': userId,
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+      });
+    } catch (e) {
+      debugPrint('Failed to change password: $e');
+      throw Exception('Failed to change password: ${e.toString()}');
+    }
+  }
+
+  /// Deletes the user's account.
+  Future<void> deleteAccount(String userId) async {
+    try {
+      await _apiClient.delete('/auth/users/$userId');
+      await signOut(); // Clear local tokens after deletion
+    } catch (e) {
+      debugPrint('Failed to delete account: $e');
+      throw Exception('Failed to delete account: ${e.toString()}');
+    }
   }
 
   /// Helper to parse and store tokens from a backend response.

@@ -35,10 +35,22 @@ class StaffAuthService {
       debugPrint(
           'StaffAuthService: Authentication successful, triggering user switch');
 
-      // Trigger user data refresh and routing
+      // PATCH: Guard navigation until profile is fully loaded
       if (context.mounted) {
         await Provider.of<UserDataProvider>(context, listen: false)
             .switchUser();
+        
+        // CRITICAL: Wait for profile hydration before allowing navigation
+        final userDataProvider = Provider.of<UserDataProvider>(context, listen: false);
+        int attempts = 0;
+        while (userDataProvider.userProfile == null && attempts < 10) {
+          await Future.delayed(Duration(milliseconds: 500));
+          attempts++;
+        }
+        
+        if (userDataProvider.userProfile == null) {
+          throw Exception('Profile loading timeout - please try again');
+        }
       }
 
       debugPrint(

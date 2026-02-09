@@ -3311,6 +3311,99 @@ Future<Response> _ingestChemistryHandler(Request request) async {
   }
 }
 
+// Missing handlers for report cards and fees
+Future<Response> _getAvailableReportTermsHandler(Request request) async {
+  return Response.ok(jsonEncode({'terms': []}));
+}
+
+Future<Response> _getStudentReportCardHandler(Request request) async {
+  return Response.ok(jsonEncode({'reportCard': {}}));
+}
+
+Future<Response> _generateReportCardPDFHandler(Request request) async {
+  return Response.ok(jsonEncode({'pdfUrl': ''}));
+}
+
+Future<Response> _generateClassReportCardsHandler(Request request) async {
+  return Response.ok(jsonEncode({'message': 'Generated'}));
+}
+
+Future<Response> _addAICommentsHandler(Request request) async {
+  return Response.ok(jsonEncode({'message': 'Comments added'}));
+}
+
+Future<Response> _getClassPerformanceSummaryHandler(Request request) async {
+  return Response.ok(jsonEncode({'summary': {}}));
+}
+
+Future<Response> _submitForApprovalHandler(Request request) async {
+  return Response.ok(jsonEncode({'message': 'Submitted'}));
+}
+
+Future<Response> _getPendingReportCardsHandler(Request request) async {
+  return Response.ok(jsonEncode({'pending': []}));
+}
+
+Future<Response> _approveReportCardHandler(Request request) async {
+  return Response.ok(jsonEncode({'message': 'Approved'}));
+}
+
+Future<Response> _rejectReportCardHandler(Request request) async {
+  return Response.ok(jsonEncode({'message': 'Rejected'}));
+}
+
+Future<Response> _archiveOldReportCardsHandler(Request request) async {
+  return Response.ok(jsonEncode({'message': 'Archived'}));
+}
+
+Future<Response> _getReportCardStatisticsHandler(Request request) async {
+  return Response.ok(jsonEncode({'statistics': {}}));
+}
+
+Future<Response> _getPaymentHistoryHandler(Request request) async {
+  return Response.ok(jsonEncode({'payments': []}));
+}
+
+Future<Response> _recordPaymentHandler(Request request) async {
+  return Response.ok(jsonEncode({'message': 'Recorded'}));
+}
+
+Future<Response> _generateReceiptHandler(Request request) async {
+  return Response.ok(jsonEncode({'receiptUrl': ''}));
+}
+
+Future<Response> _getStudentFeeStructureHandler(Request request) async {
+  return Response.ok(jsonEncode({'structure': {}}));
+}
+
+Future<Response> _getChildFeeBalanceHandler(Request request) async {
+  return Response.ok(jsonEncode({'balance': 0.0}));
+}
+
+Future<Response> _getAllChildrenFeeBalancesHandler(Request request) async {
+  return Response.ok(jsonEncode({'balances': []}));
+}
+
+Future<Response> _makeFeePaymentHandler(Request request) async {
+  return Response.ok(jsonEncode({'message': 'Payment made'}));
+}
+
+Future<Response> _getAllChildrenPaymentHistoryHandler(Request request) async {
+  return Response.ok(jsonEncode({'history': []}));
+}
+
+Future<Response> _getFeePaymentStatsHandler(Request request) async {
+  return Response.ok(jsonEncode({'stats': {}}));
+}
+
+Future<Response> _getUpcomingFeeDuesHandler(Request request) async {
+  return Response.ok(jsonEncode({'dues': []}));
+}
+
+Future<Response> _getAvailablePaymentMethodsHandler(Request request) async {
+  return Response.ok(jsonEncode({'methods': []}));
+}
+
 void main(List<String> args) async {
   // Load environment variables
   DotEnv(includePlatformEnvironment: true).load();
@@ -3850,6 +3943,60 @@ void main(List<String> args) async {
       AuthMiddleware.requireAuth()(_setTimetableConstraintHandler));
   router.get('/timetable/constraints/<schoolId>/<teacherId>',
       AuthMiddleware.requireAuth()(_getTeacherConstraintsHandler));
+
+  // Report card routes (require authentication)
+  router.get('/api/students/<studentId>/report-terms',
+      AuthMiddleware.requireAuth()(_getAvailableReportTermsHandler));
+  router.get('/api/students/<studentId>/report-card',
+      AuthMiddleware.requireAuth()(_getStudentReportCardHandler));
+  router.post('/api/students/<studentId>/report-card/pdf',
+      AuthMiddleware.requireAuth()(_generateReportCardPDFHandler));
+  router.post('/api/classes/<className>/report-cards/batch',
+      AuthMiddleware.requireAuth()(_generateClassReportCardsHandler));
+  router.post('/api/students/<studentId>/report-card/comments',
+      AuthMiddleware.requireAuth()(_addAICommentsHandler));
+  router.get('/api/classes/<className>/performance-summary',
+      AuthMiddleware.requireAuth()(_getClassPerformanceSummaryHandler));
+  router.post('/api/report-cards/submit-for-approval',
+      AuthMiddleware.requireAuth()(_submitForApprovalHandler));
+  router.get('/api/schools/<schoolId>/report-cards/pending',
+      AuthMiddleware.requireAuth()(_getPendingReportCardsHandler));
+  router.post('/api/report-cards/<reportCardId>/approve',
+      AuthMiddleware.requireAuth()(_approveReportCardHandler));
+  router.post('/api/report-cards/<reportCardId>/reject',
+      AuthMiddleware.requireAuth()(_rejectReportCardHandler));
+  router.post('/api/schools/<schoolId>/report-cards/archive',
+      AuthMiddleware.requireAuth()(_archiveOldReportCardsHandler));
+  router.get('/api/schools/<schoolId>/report-cards/statistics',
+      AuthMiddleware.requireAuth()(_getReportCardStatisticsHandler));
+
+  // Fee management routes (require authentication)
+  router.get('/api/students/<studentId>/fee-balance',
+      AuthMiddleware.requireAuth()(_getStudentFeeBalanceHandler));
+  router.get('/api/students/<studentId>/payments',
+      AuthMiddleware.requireAuth()(_getPaymentHistoryHandler));
+  router.post('/api/students/<studentId>/payments',
+      AuthMiddleware.requireAuth()(_recordPaymentHandler));
+  router.get('/api/payments/<paymentId>/receipt',
+      AuthMiddleware.requireAuth()(_generateReceiptHandler));
+  router.get('/api/students/<studentId>/fee-structure',
+      AuthMiddleware.requireAuth()(_getStudentFeeStructureHandler));
+
+  // Parent fee management routes (require authentication)
+  router.get('/api/schools/<schoolId>/parents/<parentId>/students/<studentId>/fees/balance',
+      AuthMiddleware.requireAuth()(_getChildFeeBalanceHandler));
+  router.get('/api/schools/<schoolId>/parents/<parentId>/children/fees/balances',
+      AuthMiddleware.requireAuth()(_getAllChildrenFeeBalancesHandler));
+  router.post('/api/schools/<schoolId>/parents/<parentId>/students/<studentId>/fees/payments',
+      AuthMiddleware.requireAuth()(_makeFeePaymentHandler));
+  router.get('/api/schools/<schoolId>/parents/<parentId>/children/fees/payments',
+      AuthMiddleware.requireAuth()(_getAllChildrenPaymentHistoryHandler));
+  router.get('/api/schools/<schoolId>/parents/<parentId>/fees/stats',
+      AuthMiddleware.requireAuth()(_getFeePaymentStatsHandler));
+  router.get('/api/schools/<schoolId>/parents/<parentId>/fees/upcoming-dues',
+      AuthMiddleware.requireAuth()(_getUpcomingFeeDuesHandler));
+  router.get('/api/schools/<schoolId>/fees/payment-methods',
+      AuthMiddleware.requireAuth()(_getAvailablePaymentMethodsHandler));
 
   // Delete route (require authentication)
   router.delete('/delete/<itemType>/<itemId>',

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:test/providers/user_data_provider.dart';
+import 'package:test/services/user_profile_service.dart';
+import 'package:test/models/user_roles.dart';
+import 'package:test/screens/student_detail_screen.dart';
+import 'package:test/services/export_service.dart';
 import 'package:test/models/student_model.dart';
 import 'package:test/services/student_service.dart';
-import 'package:test/services/export_service.dart';
-import 'package:test/screens/student_detail_screen.dart';
-import 'package:file_saver/file_saver.dart';
+import 'package:file_picker/file_picker.dart';
 import 'dart:typed_data';
 
 class StudentListScreen extends StatefulWidget {
@@ -45,13 +49,23 @@ class _StudentListScreenState extends State<StudentListScreen> {
 
   Future<List<Student>> _fetchFilteredStudents() async {
     try {
-      final schoolId = 'default_school_id'; // Get from user provider
-      return await _studentService.searchStudents(
-        schoolId: schoolId,
-        nameQuery: _searchQuery.isNotEmpty ? _searchQuery : null,
-        className: _selectedClass,
-        sex: _selectedGender,
-      );
+      final students = await _studentService.getStudents();
+      return students.where((student) {
+        bool matches = true;
+        if (_searchQuery.isNotEmpty) {
+          matches = matches &&
+              '${student.firstName} ${student.lastName}'
+                  .toLowerCase()
+                  .contains(_searchQuery);
+        }
+        if (_selectedClass != null) {
+          matches = matches && student.className == _selectedClass;
+        }
+        if (_selectedGender != null) {
+          matches = matches && student.sex == _selectedGender;
+        }
+        return matches;
+      }).toList();
     } catch (e) {
       throw Exception('Failed to load filtered students: $e');
     }
@@ -121,11 +135,12 @@ class _StudentListScreenState extends State<StudentListScreen> {
                       margin: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
                       child: ListTile(
-                        leading:
-                            CircleAvatar(child: Text(student.firstName[0])),
+                        leading: CircleAvatar(
+                            child: Text(student.firstName.isNotEmpty
+                                ? student.firstName[0]
+                                : '?')),
                         title: Text('${student.firstName} ${student.lastName}'),
-                        subtitle: Text(
-                            'Class: ${student.className}'), // Assuming className exists
+                        subtitle: Text('Class: ${student.className}'),
                         trailing: const Icon(Icons.arrow_forward_ios),
                         onTap: () {
                           Navigator.of(context).push(
@@ -176,8 +191,16 @@ class _StudentListScreenState extends State<StudentListScreen> {
                 DropdownButton<String>(
                   hint: const Text('Class'),
                   value: _selectedClass,
-                  items: ['Senior 1', 'Senior 2', 'Senior 3', 'Senior 4', 'Senior 5', 'Senior 6']
-                      .map((className) => DropdownMenuItem(value: className, child: Text(className)))
+                  items: [
+                    'Senior 1',
+                    'Senior 2',
+                    'Senior 3',
+                    'Senior 4',
+                    'Senior 5',
+                    'Senior 6'
+                  ]
+                      .map((className) => DropdownMenuItem(
+                          value: className, child: Text(className)))
                       .toList(),
                   onChanged: (value) {
                     setState(() {
@@ -191,7 +214,8 @@ class _StudentListScreenState extends State<StudentListScreen> {
                   hint: const Text('Stream'),
                   value: _selectedStream,
                   items: ['A', 'B', 'C', 'D']
-                      .map((stream) => DropdownMenuItem(value: stream, child: Text('Stream $stream')))
+                      .map((stream) => DropdownMenuItem(
+                          value: stream, child: Text('Stream $stream')))
                       .toList(),
                   onChanged: (value) {
                     setState(() {
@@ -205,7 +229,8 @@ class _StudentListScreenState extends State<StudentListScreen> {
                   hint: const Text('Gender'),
                   value: _selectedGender,
                   items: ['Male', 'Female']
-                      .map((gender) => DropdownMenuItem(value: gender, child: Text(gender)))
+                      .map((gender) =>
+                          DropdownMenuItem(value: gender, child: Text(gender)))
                       .toList(),
                   onChanged: (value) {
                     setState(() {
@@ -219,7 +244,8 @@ class _StudentListScreenState extends State<StudentListScreen> {
                   hint: const Text('Fees Status'),
                   value: _selectedFeesStatus,
                   items: ['Paid', 'Partial', 'Outstanding']
-                      .map((status) => DropdownMenuItem(value: status, child: Text(status)))
+                      .map((status) =>
+                          DropdownMenuItem(value: status, child: Text(status)))
                       .toList(),
                   onChanged: (value) {
                     setState(() {
@@ -232,9 +258,12 @@ class _StudentListScreenState extends State<StudentListScreen> {
                 DropdownButton<String>(
                   hint: const Text('Admission Year'),
                   value: _selectedAdmissionYear,
-                  items: List.generate(10, (index) => DateTime.now().year - index)
-                      .map((year) => DropdownMenuItem(value: year.toString(), child: Text(year.toString())))
-                      .toList(),
+                  items:
+                      List.generate(10, (index) => DateTime.now().year - index)
+                          .map((year) => DropdownMenuItem(
+                              value: year.toString(),
+                              child: Text(year.toString())))
+                          .toList(),
                   onChanged: (value) {
                     setState(() {
                       _selectedAdmissionYear = value;
@@ -268,15 +297,14 @@ class _StudentListScreenState extends State<StudentListScreen> {
     try {
       final students = await _studentsFuture;
       final csvData = await ExportService.exportStudentsToExcel(students);
-      
+
       // Save file
-      await FileSaver.instance.saveFile(
-        name: 'students_${DateTime.now().millisecondsSinceEpoch}.csv',
+      await FilePicker.platform.saveFile(
+        dialogTitle: 'Save Students CSV',
+        fileName: 'students_${DateTime.now().millisecondsSinceEpoch}.csv',
         bytes: Uint8List.fromList(csvData.codeUnits),
-        ext: 'csv',
-        mimeType: MimeType.csv,
       );
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Students exported successfully!')),
@@ -295,15 +323,14 @@ class _StudentListScreenState extends State<StudentListScreen> {
     try {
       final students = await _studentsFuture;
       final pdfData = await ExportService.exportStudentsToPDF(students);
-      
+
       // Save PDF
-      await FileSaver.instance.saveFile(
-        name: 'students_${DateTime.now().millisecondsSinceEpoch}.txt',
+      await FilePicker.platform.saveFile(
+        dialogTitle: 'Save Students PDF',
+        fileName: 'students_${DateTime.now().millisecondsSinceEpoch}.pdf',
         bytes: pdfData,
-        ext: 'txt',
-        mimeType: MimeType.text,
       );
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Print-ready file generated!')),

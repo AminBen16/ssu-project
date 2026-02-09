@@ -68,7 +68,16 @@ class _VoiceAssistantPanelState extends State<VoiceAssistantPanel> {
 
   Future<void> _speak(String text) async {
     if (text.isNotEmpty) {
-      await _flutterTts.speak(text);
+      try {
+        await _flutterTts.speak(text);
+        debugPrint('Speaking: $text');
+      } catch (e) {
+        debugPrint('TTS Error: $e');
+        // Fallback: show message visually if TTS fails
+        if (mounted) {
+          setState(() => _statusMessage = text);
+        }
+      }
     }
   }
 
@@ -85,16 +94,42 @@ class _VoiceAssistantPanelState extends State<VoiceAssistantPanel> {
       _transcribedText = '';
     });
     _speak(_statusMessage);
-    await _speechToText.listen(
-      onResult: (result) {
-        setState(() {
-          _transcribedText = result.recognizedWords;
-        });
-        if (result.finalResult) {
-          _stopListeningAndProcess();
-        }
-      },
-    );
+    
+    try {
+      await _speechToText.listen(
+        listenOptions: SpeechListenOptions(
+          partialResults: true,
+          listenMode: ListenMode.confirmation,
+          cancelOnError: true,
+          onDevice: true,
+        ),
+        onResult: (result) {
+          setState(() {
+            _transcribedText = result.recognizedWords;
+            debugPrint('Transcribed: ${result.recognizedWords}');
+          });
+          if (result.finalResult) {
+            _stopListeningAndProcess();
+          }
+        },
+        onSoundLevelChange: (level) {
+          // Optional: Visual feedback for sound level
+          if (mounted && level > 0.5) {
+            setState(() {
+              // Could add visual indicator here if needed
+            });
+          }
+        },
+        // FIXED: Removed onDone parameter - not supported in speech_to_text API
+      );
+    } catch (e) {
+      debugPrint('Speech recognition exception: $e');
+      setState(() {
+        _isListening = false;
+        _statusMessage = 'Speech recognition failed. Please try again.';
+      });
+      _speak('Speech recognition failed. Please try again.');
+    }
   }
 
   Future<void> _captureImage() async {
@@ -114,39 +149,59 @@ class _VoiceAssistantPanelState extends State<VoiceAssistantPanel> {
   void _stopListeningAndProcess() async {
     if (!_isListening) return;
 
-    await _speechToText.stop();
-    setState(() {
-      _isListening = false;
-      _isProcessing = true;
-      _statusMessage = 'Processing command...';
-    });
-    _speak(_statusMessage);
-
-    if (_transcribedText.isNotEmpty) {
-      AssistantIntent intent;
-      // Check if there's an image to process with the command
-      if (_capturedImageBytes != null) {
-        intent = await _assistantService.parseImageCommand(
-          imageBytes: _capturedImageBytes!,
-          command: _transcribedText,
-        );
-      } else {
-        // No image, process as a regular voice command
-        intent = await _assistantService.parseCommand(
-          _transcribedText,
-          contextHint: widget.contextHint,
-        );
-      }
-      await _handleIntent(intent);
-    } else {
-      setState(() => _statusMessage = 'No speech detected. Try again.');
+    try {
+      await _speechToText.stop();
+      setState(() {
+        _isListening = false;
+        _isProcessing = true;
+        _statusMessage = 'Processing command...';
+      });
       _speak(_statusMessage);
-    }
 
-    if (!mounted) return;
-    setState(() {
-      _isProcessing = false;
-    });
+      if (_transcribedText.isNotEmpty) {
+        AssistantIntent intent;
+        try {
+          // Check if there's an image to process with the command
+          if (_capturedImageBytes != null) {
+            intent = await _assistantService.parseImageCommand(
+              imageBytes: _capturedImageBytes!,
+              command: _transcribedText,
+            );
+          } else {
+            // No image, process as a regular voice command
+            intent = await _assistantService.parseCommand(
+              _transcribedText,
+              contextHint: widget.contextHint,
+            );
+          }
+          
+          if (mounted) {
+            await _handleIntent(intent);
+          }
+        } catch (e) {
+          debugPrint('Intent processing error: $e');
+          setState(() {
+            _isProcessing = false;
+            _statusMessage = 'Error processing command. Please try again.';
+          });
+          _speak('Error processing command. Please try again.');
+        }
+      } else {
+        setState(() {
+          _isProcessing = false;
+          _statusMessage = 'No speech detected. Try again.';
+        });
+        _speak(_statusMessage);
+      }
+    } catch (e) {
+      debugPrint('Stop listening error: $e');
+      setState(() {
+        _isListening = false;
+        _isProcessing = false;
+        _statusMessage = 'Error stopping listening. Please try again.';
+      });
+      _speak('Error stopping listening. Please try again.');
+    }
   }
 
   Future<void> _handleIntent(AssistantIntent intent) async {
@@ -175,6 +230,46 @@ class _VoiceAssistantPanelState extends State<VoiceAssistantPanel> {
               ),
             ),
           );
+        } else if (intent.screen == 'dashboard') {
+          const message = 'Navigating to dashboard...';
+          setState(() => _statusMessage = message);
+          await _speak(message);
+          
+          if (!mounted) return;
+          navigator.pop(); // Close panel
+          // Already on dashboard, no navigation needed
+        } else if (intent.screen == 'help') {
+          const message = 'Here are the commands I can help you with...';
+          setState(() => _statusMessage = message);
+          await _speak(message);
+          
+          // Show help dialog
+          if (mounted) {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Voice Assistant Help'),
+                content: const Text(
+                  'Available commands:\n\n'
+                  '• "Open marks entry" - Navigate to marks entry\n'
+                  '• "Open marks entry for [class] [subject]" - Navigate with pre-filled data\n'
+                  '• "Go to dashboard" - Return to dashboard\n'
+                  '• "Help" - Show this help message\n'
+                  '• Take a photo and say "Solve this" - Analyze image\n\n'
+                  'Examples:\n'
+                  '• "Open marks entry for Senior 1 Mathematics"\n'
+                  '• "Navigate to Term 2"\n'
+                  '• "Record marks for John Doe"',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Got it'),
+                  ),
+                ],
+              ),
+            );
+          }
         } else {
           final message = "Sorry, I can't navigate to '${intent.screen}' yet.";
           setState(() => _statusMessage = message);
@@ -274,10 +369,29 @@ class _VoiceAssistantPanelState extends State<VoiceAssistantPanel> {
                       : Theme.of(context).colorScheme.primary,
                   child: _isProcessing
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : Icon(
-                          _isInitialized ? Icons.mic : Icons.mic_off,
-                          color: Colors.white,
-                          size: 40,
+                      : Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Icon(
+                              _isInitialized ? Icons.mic : Icons.mic_off,
+                              color: Colors.white,
+                              size: 40,
+                            ),
+                            // Audio level indicator
+                            if (_isListening)
+                              Positioned(
+                                bottom: 5,
+                                right: 5,
+                                child: Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                 ),
               ),

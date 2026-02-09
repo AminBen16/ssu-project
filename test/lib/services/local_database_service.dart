@@ -24,6 +24,7 @@ class LocalDatabaseService implements MessageStorage {
   static const String examsTable = 'exams';
   static const String marksTable = 'marks';
   static const String feesTable = 'fees';
+  static const String paymentsTable = 'payments';
   static const String booksTable = 'books';
   static const String lessonPlansTable = 'lesson_plans';
 
@@ -166,6 +167,24 @@ class LocalDatabaseService implements MessageStorage {
         student_id TEXT NOT NULL,
         data TEXT NOT NULL,
         last_sync TEXT NOT NULL
+      )
+    ''');
+
+    // Payments
+    await db.execute('''
+      CREATE TABLE $paymentsTable (
+        id TEXT PRIMARY KEY,
+        student_id TEXT NOT NULL,
+        student_name TEXT NOT NULL,
+        amount REAL NOT NULL,
+        currency TEXT NOT NULL,
+        payment_method TEXT NOT NULL,
+        payment_date TEXT NOT NULL,
+        status TEXT NOT NULL,
+        transaction_id TEXT,
+        failure_reason TEXT,
+        created_at TEXT NOT NULL,
+        is_offline_payment INTEGER NOT NULL DEFAULT 0
       )
     ''');
 
@@ -366,9 +385,24 @@ class LocalDatabaseService implements MessageStorage {
     final db = await database;
     final results = await db.query(table);
 
-    return results.map((row) {
-      return jsonDecode(row['data'] as String) as Map<String, dynamic>;
-    }).toList();
+    return results;
+  }
+
+  Future<void> insert(String table, Map<String, dynamic> data) async {
+    final db = await database;
+    await db.insert(table, data);
+  }
+
+  Future<void> update(String table, Map<String, dynamic> data) async {
+    final db = await database;
+    final id = data['id'];
+    if (id != null) {
+      await db.update(table, data, where: 'id = ?', whereArgs: [id]);
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getAll(String table) async {
+    return await getAllData(table);
   }
 
   Future<void> deleteData(String table, String id) async {
@@ -415,6 +449,7 @@ class LocalDatabaseService implements MessageStorage {
     await db.delete(examsTable);
     await db.delete(marksTable);
     await db.delete(feesTable);
+    await db.delete(paymentsTable);
     await db.delete(booksTable);
     await db.delete(lessonPlansTable);
   }

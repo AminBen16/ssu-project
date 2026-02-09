@@ -1,5 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart' as fbp;
+import 'package:flutter_nearby_connections/flutter_nearby_connections.dart';
 import '../models/domain_models.dart';
+
+enum TransportType {
+  bluetooth,
+  wifiDirect,
+}
 
 class TransportPayload {
   final String senderId;
@@ -25,6 +34,261 @@ abstract class PeerDiscovery {
   Future<void> dispose();
 }
 
+/// Bluetooth LE Transport Manager using flutter_blue_plus
+/// Integrates real Bluetooth LE communication for offline messaging
+class BluetoothTransportManager implements TransportManager {
+  final StreamController<TransportPayload> _controller =
+      StreamController.broadcast();
+  final String localDeviceId;
+  fbp.FlutterBluePlus? _flutterBlue;
+  fbp.BluetoothDevice? _connectedDevice;
+  fbp.BluetoothCharacteristic? _txCharacteristic;
+  fbp.BluetoothCharacteristic? _rxCharacteristic;
+  StreamSubscription? _scanSubscription;
+  StreamSubscription? _connectionSubscription;
+
+  BluetoothTransportManager(this.localDeviceId);
+
+  @override
+  Stream<TransportPayload> get incomingPayloads => _controller.stream;
+
+  Future<void> initialize() async {
+    try {
+      _flutterBlue = fbp.FlutterBluePlus();
+      // Request permissions and enable Bluetooth
+      await fbp.FlutterBluePlus.turnOn();
+    } catch (e) {
+      debugPrint('Bluetooth initialization failed: $e');
+    }
+  }
+
+  @override
+  Future<void> sendPayload(String targetDeviceId, String payload) async {
+    if (_txCharacteristic != null && _connectedDevice != null) {
+      try {
+        final data = utf8.encode(payload);
+        await _txCharacteristic!.write(data);
+      } catch (e) {
+        debugPrint('Failed to send Bluetooth payload: $e');
+      }
+    }
+  }
+
+  @override
+  Future<void> broadcastPayload(String payload) async {
+    // Bluetooth LE doesn't support true broadcasting, send to connected device
+    await sendPayload('', payload);
+  }
+
+  Future<void> startScanning() async {
+    if (_flutterBlue == null) return;
+
+    _scanSubscription = fbp.FlutterBluePlus.scanResults.listen((results) {
+      for (var result in results) {
+        if (result.device.platformName.isNotEmpty) {
+          // Connect to discovered device
+          _connectToDevice(result.device);
+        }
+      }
+    });
+
+    await fbp.FlutterBluePlus.startScan(timeout: const Duration(seconds: 30));
+  }
+
+  Future<void> _connectToDevice(fbp.BluetoothDevice device) async {
+    try {
+      await device.connect();
+      _connectedDevice = device;
+
+      // Discover services and characteristics
+      final services = await device.discoverServices();
+      for (var service in services) {
+        if (service.uuid.toString() == '0000180f-0000-1000-8000-00805f9b34fb') {
+          // Custom service UUID
+          for (var characteristic in service.characteristics) {
+            if (characteristic.uuid.toString() ==
+                '00002a19-0000-1000-8000-00805f9b34fb') {
+              // TX characteristic
+              _txCharacteristic = characteristic;
+            } else if (characteristic.uuid.toString() ==
+                '00002a20-0000-1000-8000-00805f9b34fb') {
+              // RX characteristic
+              _rxCharacteristic = characteristic;
+              await _rxCharacteristic!.setNotifyValue(true);
+              _connectionSubscription =
+                  _rxCharacteristic!.lastValueStream.listen((value) {
+                final payload = utf8.decode(value);
+                _controller.add(TransportPayload(
+                  senderId: device.platformName,
+                  content: payload,
+                ));
+              });
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to connect to Bluetooth device: $e');
+    }
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _scanSubscription?.cancel();
+    await _connectionSubscription?.cancel();
+    await _connectedDevice?.disconnect();
+    await fbp.FlutterBluePlus.stopScan();
+    await _controller.close();
+  }
+}
+
+/// Wi-Fi Direct Transport Manager using flutter_nearby_connections
+/// Integrates real Wi-Fi Direct peer-to-peer communication
+class WifiDirectTransportManager implements TransportManager {
+  final StreamController<TransportPayload> _controller =
+      StreamController.broadcast();
+  final String localDeviceId;
+  NearbyService? _nearbyService;
+  StreamSubscription? _dataSubscription;
+  StreamSubscription? _stateSubscription;
+
+  WifiDirectTransportManager(this.localDeviceId);
+
+  @override
+  Stream<TransportPayload> get incomingPayloads => _controller.stream;
+
+  Future<void> initialize() async {
+    _nearbyService = NearbyService();
+
+    _dataSubscription =
+        _nearbyService!.dataReceivedSubscription(callback: (data) {
+      final payload = utf8.decode(data['data']);
+      _controller.add(TransportPayload(
+        senderId: data['deviceId'],
+        content: payload,
+      ));
+    });
+
+    _stateSubscription =
+        _nearbyService!.stateChangedSubscription(callback: (devices) {
+      // Handle device state changes
+    });
+  }
+
+  Future<void> startAdvertising() async {
+    if (_nearbyService == null) return;
+
+    await _nearbyService!.init(
+      serviceType: 'school_comms',
+      deviceName: localDeviceId,
+      strategy: Strategy.p2p,
+      callback: (isRunning) {
+        if (isRunning) {
+          _nearbyService!.startAdvertisingPeer();
+          _nearbyService!.startBrowsingForPeers();
+        }
+      },
+    );
+  }
+
+  @override
+  Future<void> sendPayload(String targetDeviceId, String payload) async {
+    if (_nearbyService != null) {
+      await _nearbyService!.sendMessage(targetDeviceId, payload);
+    }
+  }
+
+  @override
+  Future<void> broadcastPayload(String payload) async {
+    if (_nearbyService != null) {
+      await _nearbyService!.broadcastMessage(payload);
+    }
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _dataSubscription?.cancel();
+    await _stateSubscription?.cancel();
+    await _nearbyService?.stopAdvertisingPeer();
+    await _nearbyService?.stopBrowsingForPeers();
+    await _controller.close();
+  }
+}
+
+/// Multi-Transport Manager that combines Bluetooth and Wi-Fi Direct
+/// Provides fallback and transport selection based on availability
+class MultiTransportManager implements TransportManager {
+  final StreamController<TransportPayload> _controller =
+      StreamController.broadcast();
+  final String localDeviceId;
+
+  BluetoothTransportManager? _bluetoothManager;
+  WifiDirectTransportManager? _wifiDirectManager;
+  TransportType _activeTransport = TransportType.bluetooth;
+
+  MultiTransportManager(this.localDeviceId);
+
+  @override
+  Stream<TransportPayload> get incomingPayloads => _controller.stream;
+
+  Future<void> initialize() async {
+    // Initialize Bluetooth transport
+    _bluetoothManager = BluetoothTransportManager(localDeviceId);
+    await _bluetoothManager!.initialize();
+    _bluetoothManager!.incomingPayloads.listen((payload) {
+      if (_activeTransport == TransportType.bluetooth) {
+        _controller.add(payload);
+      }
+    });
+
+    // Initialize Wi-Fi Direct transport
+    _wifiDirectManager = WifiDirectTransportManager(localDeviceId);
+    await _wifiDirectManager!.initialize();
+    await _wifiDirectManager!.startAdvertising();
+    _wifiDirectManager!.incomingPayloads.listen((payload) {
+      if (_activeTransport == TransportType.wifiDirect) {
+        _controller.add(payload);
+      }
+    });
+  }
+
+  void setActiveTransport(TransportType transport) {
+    _activeTransport = transport;
+  }
+
+  @override
+  Future<void> sendPayload(String targetDeviceId, String payload) async {
+    switch (_activeTransport) {
+      case TransportType.bluetooth:
+        await _bluetoothManager?.sendPayload(targetDeviceId, payload);
+        break;
+      case TransportType.wifiDirect:
+        await _wifiDirectManager?.sendPayload(targetDeviceId, payload);
+        break;
+    }
+  }
+
+  @override
+  Future<void> broadcastPayload(String payload) async {
+    switch (_activeTransport) {
+      case TransportType.bluetooth:
+        await _bluetoothManager?.broadcastPayload(payload);
+        break;
+      case TransportType.wifiDirect:
+        await _wifiDirectManager?.broadcastPayload(payload);
+        break;
+    }
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _bluetoothManager?.dispose();
+    await _wifiDirectManager?.dispose();
+    await _controller.close();
+  }
+}
+
+/// Legacy Local Transport Manager for fallback/simulation
 class LocalTransportManager implements TransportManager {
   final StreamController<TransportPayload> _controller =
       StreamController.broadcast();

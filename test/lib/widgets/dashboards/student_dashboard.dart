@@ -14,12 +14,14 @@ import 'package:test/screens/view_timetable_screen.dart';
 import 'package:test/screens/assignments_screen.dart';
 import 'package:test/screens/exams_screen.dart';
 import 'package:test/screens/manage_books_screen.dart';
+import 'package:test/screens/full_grades_screen.dart';
+import 'package:test/screens/full_notifications_screen.dart';
 import 'package:test/widgets/future_handler.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:test/services/assignment_service.dart';
 import 'package:test/services/exam_service.dart';
 import 'package:test/services/library_service.dart';
-import 'package:test/models/marks_service.dart';
+import 'package:test/services/marks_service.dart';
 
 /// A modular widget for the Student dashboard.
 class StudentDashboard extends StatefulWidget {
@@ -59,7 +61,6 @@ class _StudentDashboardState extends State<StudentDashboard> {
     final assignmentService = AssignmentService();
     final examService = ExamService();
     final libraryService = LibraryService();
-    final marksService = MarksService();
     final offlineService = OfflineService();
 
     ImageProvider? backgroundImage;
@@ -252,14 +253,11 @@ class _StudentDashboardState extends State<StudentDashboard> {
                             context,
                             icon: Icons.assignment,
                             label: 'Assignments',
-                            onTap: () {
-                              // Navigate to assignments screen (to be implemented)
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content:
-                                        Text('Assignments screen coming soon')),
-                              );
-                            },
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const AssignmentsScreen(),
+                              ),
+                            ),
                             isOnline: _isOnline,
                           ),
                           _buildStudentAction(
@@ -285,8 +283,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                       _buildLibrarySection(context, userData, student,
                           libraryService, offlineService),
                       const Divider(height: 16),
-                      _buildGradesSection(context, userData, student,
-                          marksService, offlineService),
+                      _buildGradesSection(context, userData, student, offlineService),
                       const Divider(height: 32),
                       _buildRealNotificationsSection(context, student,
                           notificationService, offlineService),
@@ -410,14 +407,11 @@ class _StudentDashboardState extends State<StudentDashboard> {
                     ),
                     if (notifications.isNotEmpty)
                       TextButton(
-                        onPressed: () {
-                          // Navigate to full notifications screen (to be implemented)
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text(
-                                    'Full notifications screen coming soon')),
-                          );
-                        },
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const FullNotificationsScreen(),
+                          ),
+                        ),
                         child: const Text('View All'),
                       ),
                   ],
@@ -521,16 +515,11 @@ class _StudentDashboardState extends State<StudentDashboard> {
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Center(
                       child: TextButton(
-                        onPressed: () {
-                          // Navigate to full notifications screen (to be implemented)
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      'Full notifications screen coming soon')),
-                            );
-                          }
-                        },
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const FullNotificationsScreen(),
+                          ),
+                        ),
                         child: Text(
                             '+${notifications.length - 3} more notifications'),
                       ),
@@ -1002,12 +991,11 @@ class _StudentDashboardState extends State<StudentDashboard> {
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Center(
                       child: TextButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Exams screen coming soon')),
-                          );
-                        },
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ExamsScreen(),
+                          ),
+                        ),
                         child: Text('+${exams.length - 2} more exams'),
                       ),
                     ),
@@ -1180,7 +1168,6 @@ class _StudentDashboardState extends State<StudentDashboard> {
       BuildContext context,
       UserDataProvider userData,
       Student student,
-      MarksService marksService,
       OfflineService offlineService) {
     return FutureBuilder<bool>(
       future: offlineService.isOnline,
@@ -1188,37 +1175,9 @@ class _StudentDashboardState extends State<StudentDashboard> {
         final isOnline = onlineSnapshot.data ?? true;
 
         return FutureHandler<Map<String, dynamic>>(
-          future: offlineService.callWithOfflineFallbackAndSync(
-            onlineCall: () async {
-              // Get recent grades for the student (simplified - would need proper API endpoint)
-              // For now, return mock data
-              return {
-                'overallGrade': 'B+',
-                'gpa': 3.5,
-                'recentSubjects': [
-                  {'subject': 'Mathematics', 'grade': 'A', 'score': 85},
-                  {'subject': 'English', 'grade': 'B+', 'score': 78},
-                  {'subject': 'Science', 'grade': 'A-', 'score': 82},
-                ],
-                'lastUpdated': DateTime.now().toIso8601String(),
-              };
-            },
-            offlineFallback: () async {
-              final cached = await offlineService
-                  .getCachedData('student_grades_${student.id}');
-              if (cached != null) {
-                return Map<String, dynamic>.from(cached);
-              }
-              return {
-                'overallGrade': 'N/A',
-                'gpa': 0.0,
-                'recentSubjects': [],
-                'lastUpdated': null,
-              };
-            },
-            cacheKey: 'student_grades_${student.id}',
-            tableName: 'marks',
-            recordId: student.id,
+          future: MarksService.getStudentGrades(
+            int.tryParse(userData.userProfile!.schoolId!) ?? 0,
+            int.tryParse(student.id) ?? 0,
           ),
           loadingWidget: const Center(child: CircularProgressIndicator()),
           emptyMessage: 'No grades available.',
@@ -1257,13 +1216,11 @@ class _StudentDashboardState extends State<StudentDashboard> {
                     ),
                     if (grades['recentSubjects']?.isNotEmpty ?? false)
                       TextButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content:
-                                    Text('Full grades screen coming soon')),
-                          );
-                        },
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const FullGradesScreen(),
+                          ),
+                        ),
                         child: const Text('View All'),
                       ),
                   ],

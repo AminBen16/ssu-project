@@ -223,7 +223,7 @@ class UserProfileService {
         if (response != null) {
           debugPrint('Staff creation successful');
           debugPrint(
-              'Response keys: ${response is Map ? (response as Map).keys.toList() : 'Not a map'}');
+              'Response keys: ${response is Map ? response.keys.toList() : 'Not a map'}');
           return response;
         } else {
           debugPrint('Server returned null response');

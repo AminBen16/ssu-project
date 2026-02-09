@@ -642,4 +642,41 @@ abstract class DatabaseServiceBase {
   Future<void> linkParentToStudents(
       {required String parentUserId, required List<String> studentIds});
   Future<List<Map<String, dynamic>>> getStudentsByParentId(String parentUserId);
+
+  // Ticket management methods
+  Future<Map<String, dynamic>> createTicket(Map<String, dynamic> ticketData);
+  Future<List<Map<String, dynamic>>> getTickets(String schoolId);
+  Future<Map<String, dynamic>?> getTicketById(String ticketId);
+  Future<void> updateTicket(String ticketId, Map<String, dynamic> ticketData);
+  Future<void> deleteTicket(String ticketId);
+
+  // Technician management methods
+  Future<Map<String, dynamic>> createTechnician(
+      Map<String, dynamic> technicianData);
+  Future<List<Map<String, dynamic>>> getTechnicians(String schoolId);
+  Future<Map<String, dynamic>?> getTechnicianById(String technicianId);
+  Future<void> updateTechnician(
+      String technicianId, Map<String, dynamic> technicianData);
+  Future<void> deleteTechnician(String technicianId);
+
+  // Driver management methods
+  Future<Map<String, dynamic>> createDriver(Map<String, dynamic> driverData);
+  Future<List<Map<String, dynamic>>> getDrivers(String schoolId);
+  Future<Map<String, dynamic>?> getDriverById(String driverId);
+  Future<void> updateDriver(String driverId, Map<String, dynamic> driverData);
+  Future<void> deleteDriver(String driverId);
+
+  // Ticket visit management methods
+  Future<Map<String, dynamic>> recordTicketVisit(
+      Map<String, dynamic> visitData);
+  Future<List<Map<String, dynamic>>> getTicketVisits(String ticketId);
+  Future<List<Map<String, dynamic>>> getVisitsByUser(String userId);
+
+  // KPI management methods
+  Future<Map<String, dynamic>> recordKPIPoint(Map<String, dynamic> kpiData);
+  Future<List<Map<String, dynamic>>> getKPIs(String schoolId,
+      {String? userId, String? userType});
+  Future<Map<String, dynamic>?> getKPIById(String kpiId);
+  Future<void> updateKPI(String kpiId, Map<String, dynamic> kpiData);
+  Future<void> deleteKPI(String kpiId);
 }

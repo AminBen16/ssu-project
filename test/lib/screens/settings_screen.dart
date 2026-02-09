@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:test/providers/user_data_provider.dart';
 import 'package:test/screens/my_profile_screen.dart';
 import 'package:test/screens/privacy_settings_screen.dart';
+import 'package:test/screens/appearance_settings_screen.dart';
+import 'package:test/screens/help_support_screen.dart';
 import 'package:test/services/auth_service.dart';
 import 'package:test/screens/login_screen.dart';
 
@@ -74,10 +76,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: const Text('Theme and display options'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
-                    // Navigate to appearance settings (placeholder)
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Appearance settings coming soon')),
+                    // SAFE PATCH: Navigate to real appearance settings screen
+                    // UI exists, Route exists, Logic missing - now fixed
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const AppearanceSettingsScreen(),
+                      ),
                     );
                   },
                 ),
@@ -97,10 +101,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: const Text('Help & Support'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
-                    // Navigate to help screen (placeholder)
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Help & Support coming soon')),
+                    // Navigate to help screen
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const HelpSupportScreen(),
+                      ),
                     );
                   },
                 ),
@@ -116,7 +121,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       context: context,
                       applicationName: 'SSU - School System Uganda',
                       applicationVersion: '1.0.0',
-                      applicationLegalese: '© 2024 School System Uganda',
+                      applicationLegalese: '© 2026 School System Uganda',
                     );
                   },
                 ),

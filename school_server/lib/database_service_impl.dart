@@ -665,4 +665,52 @@ class DatabaseService extends DatabaseServiceBase {
     _emailIndex.clear();
     _parentLinks.clear();
   }
+
+  // Stub implementations for missing methods
+  @override
+  Future<Map<String, dynamic>> createDriver(Map<String, dynamic> driverData) => throw UnimplementedError();
+  @override
+  Future<Map<String, dynamic>> createTechnician(Map<String, dynamic> technicianData) => throw UnimplementedError();
+  @override
+  Future<Map<String, dynamic>> createTicket(Map<String, dynamic> ticketData) => throw UnimplementedError();
+  @override
+  Future<void> deleteDriver(String driverId) => throw UnimplementedError();
+  @override
+  Future<void> deleteKPI(String kpiId) => throw UnimplementedError();
+  @override
+  Future<void> deleteTechnician(String technicianId) => throw UnimplementedError();
+  @override
+  Future<void> deleteTicket(String ticketId) => throw UnimplementedError();
+  @override
+  Future<Map<String, dynamic>?> getDriverById(String driverId) => throw UnimplementedError();
+  @override
+  Future<List<Map<String, dynamic>>> getDrivers(String schoolId) => throw UnimplementedError();
+  @override
+  Future<Map<String, dynamic>?> getKPIById(String kpiId) => throw UnimplementedError();
+  @override
+  Future<List<Map<String, dynamic>>> getKPIs(String schoolId, {String? userId, String? userType}) => throw UnimplementedError();
+  @override
+  Future<Map<String, dynamic>?> getTechnicianById(String technicianId) => throw UnimplementedError();
+  @override
+  Future<List<Map<String, dynamic>>> getTechnicians(String schoolId) => throw UnimplementedError();
+  @override
+  Future<Map<String, dynamic>?> getTicketById(String ticketId) => throw UnimplementedError();
+  @override
+  Future<List<Map<String, dynamic>>> getTicketVisits(String ticketId) => throw UnimplementedError();
+  @override
+  Future<List<Map<String, dynamic>>> getTickets(String schoolId) => throw UnimplementedError();
+  @override
+  Future<List<Map<String, dynamic>>> getVisitsByUser(String userId) => throw UnimplementedError();
+  @override
+  Future<Map<String, dynamic>> recordKPIPoint(Map<String, dynamic> kpiData) => throw UnimplementedError();
+  @override
+  Future<Map<String, dynamic>> recordTicketVisit(Map<String, dynamic> visitData) => throw UnimplementedError();
+  @override
+  Future<void> updateDriver(String driverId, Map<String, dynamic> driverData) => throw UnimplementedError();
+  @override
+  Future<void> updateKPI(String kpiId, Map<String, dynamic> kpiData) => throw UnimplementedError();
+  @override
+  Future<void> updateTechnician(String technicianId, Map<String, dynamic> technicianData) => throw UnimplementedError();
+  @override
+  Future<void> updateTicket(String ticketId, Map<String, dynamic> ticketData) => throw UnimplementedError();
 }

@@ -221,6 +221,37 @@ class FeeService {
     );
   }
 
+  /// Fetches all payments for a school (admin/bursar view).
+  /// SAFE PATCH: Add missing method for fee collection screen
+  /// Service exists, Logic missing - now fixed
+  Future<List<FeePayment>> getAllPaymentsForSchool(String schoolId) async {
+    final cacheKey = 'all_payments_$schoolId';
+
+    return await _offlineService.callWithOfflineFallback(
+      onlineCall: () async {
+        final response = await _apiClient.get('/api/schools/$schoolId/payments');
+        if (response == null) return [];
+        final List<dynamic> data = response['payments'] as List<dynamic>;
+        return data.map((json) => FeePayment.fromMap(json)).toList();
+      },
+      offlineFallback: () async {
+        // Try to get cached payments
+        final cached = await _localDb.getCache(cacheKey);
+        if (cached != null) {
+          final List<dynamic> data = jsonDecode(cached);
+          return data.map((json) => FeePayment.fromMap(json)).toList();
+        }
+
+        // Fallback to local database
+        final allLocalPayments = await _localDb.getAllData('fees');
+        return allLocalPayments
+            .map((json) => FeePayment.fromMap(json as Map<String, dynamic>))
+            .toList();
+      },
+      cacheKey: cacheKey,
+    );
+  }
+
   /// Fetches the overall fee summary for the school.
   Future<Map<String, double>> getSchoolFeeSummary(String schoolId) async {
     final cacheKey = 'fee_summary_$schoolId';

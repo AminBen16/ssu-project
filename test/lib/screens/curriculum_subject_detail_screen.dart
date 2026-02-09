@@ -8,14 +8,16 @@ import 'curriculum_topic_detail_screen.dart';
 class CurriculumSubjectDetailScreen extends StatefulWidget {
   final EnhancedSubject subject;
 
-  const CurriculumSubjectDetailScreen({Key? key, required this.subject}) : super(key: key);
+  const CurriculumSubjectDetailScreen({Key? key, required this.subject})
+      : super(key: key);
 
   @override
-  _CurriculumSubjectDetailScreenState createState() => _CurriculumSubjectDetailScreenState();
+  _CurriculumSubjectDetailScreenState createState() =>
+      _CurriculumSubjectDetailScreenState();
 }
 
-class _CurriculumSubjectDetailScreenState extends State<CurriculumSubjectDetailScreen>
-    with TickerProviderStateMixin {
+class _CurriculumSubjectDetailScreenState
+    extends State<CurriculumSubjectDetailScreen> with TickerProviderStateMixin {
   late TabController _tabController;
   List<EnhancedStrand> _strands = [];
   List<EnhancedTopic> _topics = [];
@@ -36,37 +38,45 @@ class _CurriculumSubjectDetailScreenState extends State<CurriculumSubjectDetailS
 
   Future<void> _loadSubjectData() async {
     setState(() => _isLoading = true);
-    
+
     try {
       if (widget.subject.id != null) {
-        final strands = await CurriculumDatabaseService.getStrandsBySubject(widget.subject.id!);
-        final topics = await CurriculumDatabaseService.getTopicsBySubject(widget.subject.id!);
-        
+        final strands = await CurriculumDatabaseService.getStrandsBySubject(
+            widget.subject.id!);
+        final topics = await CurriculumDatabaseService.getTopicsBySubject(
+            widget.subject.id!);
+
+        if (!mounted) return;
         setState(() {
-          _strands = strands.map((s) => EnhancedStrand(
-            id: s.id,
-            subjectId: s.subjectId,
-            name: s.name,
-            code: s.code,
-            description: s.description,
-            orderIndex: s.orderIndex,
-          )).toList();
-          _topics = topics.map((t) => EnhancedTopic(
-            id: t.id,
-            strandId: t.strandId,
-            name: t.name,
-            code: t.code,
-            description: t.description,
-            competency: t.competency ?? '',
-            durationPeriods: t.durationPeriods,
-            term: t.term,
-            className: t.className,
-            orderIndex: t.orderIndex,
-          )).toList();
+          _strands = strands
+              .map((s) => EnhancedStrand(
+                    id: s.id,
+                    subjectId: s.subjectId,
+                    name: s.name,
+                    code: s.code,
+                    description: s.description,
+                    orderIndex: s.orderIndex,
+                  ))
+              .toList();
+          _topics = topics
+              .map((t) => EnhancedTopic(
+                    id: t.id,
+                    strandId: t.strandId,
+                    name: t.name,
+                    code: t.code,
+                    description: t.description,
+                    competency: t.competency ?? '',
+                    durationPeriods: t.durationPeriods,
+                    term: t.term,
+                    className: t.className,
+                    orderIndex: t.orderIndex,
+                  ))
+              .toList();
           _isLoading = false;
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error loading subject data: $e')),
@@ -125,13 +135,17 @@ class _CurriculumSubjectDetailScreenState extends State<CurriculumSubjectDetailS
                   ),
                   const SizedBox(height: 16),
                   _buildInfoRow('Name', widget.subject.name),
-                  _buildInfoRow('Education Level', widget.subject.educationLevel),
+                  _buildInfoRow(
+                      'Education Level', widget.subject.educationLevel),
                   if (widget.subject.periodsPerWeek != null)
-                    _buildInfoRow('Periods per Week', widget.subject.periodsPerWeek.toString()),
+                    _buildInfoRow('Periods per Week',
+                        widget.subject.periodsPerWeek.toString()),
                   if (widget.subject.periodDuration != null)
-                    _buildInfoRow('Period Duration', '${widget.subject.periodDuration} minutes'),
+                    _buildInfoRow('Period Duration',
+                        '${widget.subject.periodDuration} minutes'),
                   if (widget.subject.classNames != null)
-                    _buildInfoRow('Classes', widget.subject.classNames!.join(', ')),
+                    _buildInfoRow(
+                        'Classes', widget.subject.classNames!.join(', ')),
                 ],
               ),
             ),
@@ -146,7 +160,8 @@ class _CurriculumSubjectDetailScreenState extends State<CurriculumSubjectDetailS
                   children: [
                     const Text(
                       'Description',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Text(widget.subject.description!),
@@ -165,7 +180,8 @@ class _CurriculumSubjectDetailScreenState extends State<CurriculumSubjectDetailS
                   children: [
                     const Text(
                       'Rationale',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Text(widget.subject.rationale!),
@@ -208,7 +224,8 @@ class _CurriculumSubjectDetailScreenState extends State<CurriculumSubjectDetailS
                   children: [
                     Icon(Icons.category_outlined, size: 64, color: Colors.grey),
                     SizedBox(height: 16),
-                    Text('No strands found', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                    Text('No strands found',
+                        style: TextStyle(fontSize: 18, color: Colors.grey)),
                     Text('Add strands to organize your curriculum content'),
                   ],
                 ),
@@ -231,8 +248,9 @@ class _CurriculumSubjectDetailScreenState extends State<CurriculumSubjectDetailS
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (strand.term != null) Text('Term: ${strand.term}'),
-            if (strand.seniorLevel != null) Text('Class: ${strand.seniorLevel}'),
-            if (strand.durationPeriods != null) 
+            if (strand.seniorLevel != null)
+              Text('Class: ${strand.seniorLevel}'),
+            if (strand.durationPeriods != null)
               Text('Duration: ${strand.durationPeriods} periods'),
           ],
         ),
@@ -287,7 +305,8 @@ class _CurriculumSubjectDetailScreenState extends State<CurriculumSubjectDetailS
                   children: [
                     Icon(Icons.topic_outlined, size: 64, color: Colors.grey),
                     SizedBox(height: 16),
-                    Text('No topics found', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                    Text('No topics found',
+                        style: TextStyle(fontSize: 18, color: Colors.grey)),
                     Text('Add topics to strands to populate this list'),
                   ],
                 ),
@@ -310,10 +329,9 @@ class _CurriculumSubjectDetailScreenState extends State<CurriculumSubjectDetailS
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(topic.competency),
-            if (topic.durationPeriods != null) 
+            if (topic.durationPeriods != null)
               Text('Duration: ${topic.durationPeriods} periods'),
-            if (topic.className != null) 
-              Text('Class: ${topic.className}'),
+            if (topic.className != null) Text('Class: ${topic.className}'),
           ],
         ),
         trailing: const Icon(Icons.arrow_forward_ios),
@@ -393,9 +411,10 @@ class _CurriculumSubjectDetailScreenState extends State<CurriculumSubjectDetailS
                   term: termController.text,
                   durationPeriods: int.tryParse(durationController.text),
                 );
-                
+
                 try {
                   await CurriculumDatabaseService.insertEnhancedStrand(strand);
+                  if (!mounted) return;
                   Navigator.of(context).pop();
                   _loadSubjectData();
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -417,9 +436,11 @@ class _CurriculumSubjectDetailScreenState extends State<CurriculumSubjectDetailS
 
   void _showEditStrandDialog(EnhancedStrand strand) {
     final nameController = TextEditingController(text: strand.name);
-    final descriptionController = TextEditingController(text: strand.description ?? '');
+    final descriptionController =
+        TextEditingController(text: strand.description ?? '');
     final termController = TextEditingController(text: strand.term ?? '');
-    final durationController = TextEditingController(text: strand.durationPeriods?.toString() ?? '');
+    final durationController =
+        TextEditingController(text: strand.durationPeriods?.toString() ?? '');
 
     showDialog(
       context: context,
@@ -483,7 +504,7 @@ class _CurriculumSubjectDetailScreenState extends State<CurriculumSubjectDetailS
                   seniorLevel: strand.seniorLevel,
                   orderIndex: strand.orderIndex,
                 );
-                
+
                 try {
                   // Convert EnhancedStrand back to Strand for database update
                   final strandForUpdate = Strand(
@@ -498,7 +519,8 @@ class _CurriculumSubjectDetailScreenState extends State<CurriculumSubjectDetailS
                   Navigator.of(context).pop();
                   _loadSubjectData();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Strand updated successfully')),
+                    const SnackBar(
+                        content: Text('Strand updated successfully')),
                   );
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -519,7 +541,8 @@ class _CurriculumSubjectDetailScreenState extends State<CurriculumSubjectDetailS
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Strand'),
-        content: Text('Are you sure you want to delete "${strand.name}"? This will also delete all associated topics and learning outcomes.'),
+        content: Text(
+            'Are you sure you want to delete "${strand.name}"? This will also delete all associated topics and learning outcomes.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -533,7 +556,8 @@ class _CurriculumSubjectDetailScreenState extends State<CurriculumSubjectDetailS
                   Navigator.of(context).pop();
                   _loadSubjectData();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Strand deleted successfully')),
+                    const SnackBar(
+                        content: Text('Strand deleted successfully')),
                   );
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(

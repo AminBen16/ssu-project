@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
+import '../widgets/radio_group.dart';
 
 class AppearanceSettingsScreen extends StatefulWidget {
   const AppearanceSettingsScreen({super.key});
@@ -18,15 +19,45 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
   late double _fontSize;
 
   final List<String> _languages = ['English', 'Swahili', 'French', 'Arabic'];
+  final List<String> _fontSizes = ['0.8', '1.0', '1.2', '1.4', '1.6', '2.0'];
 
   @override
   void initState() {
     super.initState();
-    _selectedTheme = ThemeMode.system;
-    _selectedLanguage = 'English';
-    _useSystemTheme = true;
-    _highContrast = false;
-    _fontSize = 1.0;
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    // Load settings from ThemeProvider
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    setState(() {
+      _selectedTheme = themeProvider.themeMode;
+      _selectedLanguage = themeProvider.language;
+      _useSystemTheme = themeProvider.useSystemTheme;
+      _highContrast = themeProvider.highContrast;
+      _fontSize = themeProvider.fontSize;
+    });
+  }
+
+  Future<void> _saveSettings() async {
+    // Save settings to ThemeProvider
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    themeProvider.updateSettings(
+      themeMode: _selectedTheme,
+      language: _selectedLanguage,
+      useSystemTheme: _useSystemTheme,
+      highContrast: _highContrast,
+      fontSize: _fontSize,
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Settings saved successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
   }
 
   @override
@@ -88,7 +119,31 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader('Display'),
+          _buildSectionHeader('Language'),
+          Card(
+            child: Column(
+              children: [
+                DropdownButtonFormField<String>(
+                  initialValue: _selectedLanguage,
+                  decoration: const InputDecoration(
+                    labelText: 'Language',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: _languages.map((lang) {
+                    return DropdownMenuItem(
+                      value: lang,
+                      child: Text(lang),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() => _selectedLanguage = value!);
+                    _saveSettings();
+                  },
+                ),
+              ],
+            ),
+          ),
+          _buildSectionHeader('Accessibility'),
           Card(
             child: Column(
               children: [
@@ -102,50 +157,27 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                     _saveSettings();
                   },
                 ),
-                const Divider(),
-                ListTile(
-                  title: const Text('Font Size'),
-                  subtitle: Text('${_fontSize.toStringAsFixed(1)}x'),
-                  trailing: SizedBox(
-                    width: 200,
-                    child: Slider(
-                      value: _fontSize,
-                      min: 0.8,
-                      max: 1.4,
-                      divisions: 6,
-                      label: '${_fontSize.toStringAsFixed(1)}x',
-                      onChanged: (value) {
-                        setState(() => _fontSize = value);
-                      },
-                      onChangeEnd: (value) => _saveSettings(),
-                    ),
-                  ),
+                const SizedBox(height: 16),
+                Text('Font Size: ${_fontSize.toStringAsFixed(1)}'),
+                Slider(
+                  value: _fontSize,
+                  min: 0.8,
+                  max: 2.0,
+                  divisions: 7,
+                  onChanged: (value) {
+                    setState(() => _fontSize = value);
+                    _saveSettings();
+                  },
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
-          _buildSectionHeader('Language'),
-          Card(
-            child: DropdownButtonFormField<String>(
-              decoration: const InputDecoration(
-                labelText: 'App Language',
-                border: OutlineInputBorder(),
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              ),
-              value: _selectedLanguage,
-              items: _languages.map((language) {
-                return DropdownMenuItem(
-                  value: language,
-                  child: Text(language),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() => _selectedLanguage = value!);
-                _saveSettings();
-              },
-            ),
+          const SizedBox(height: 32),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Back'),
           ),
           const SizedBox(height: 24),
           _buildSectionHeader('Preview'),
@@ -187,21 +219,6 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
               color: Theme.of(context).colorScheme.primary,
             ),
       ),
-    );
-  }
-
-  void _saveSettings() {
-    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-    themeProvider.updateSettings(
-      themeMode: _selectedTheme,
-      language: _selectedLanguage,
-      useSystemTheme: _useSystemTheme,
-      highContrast: _highContrast,
-      fontSize: _fontSize,
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Appearance settings saved')),
     );
   }
 }

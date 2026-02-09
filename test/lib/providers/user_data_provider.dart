@@ -87,8 +87,19 @@ class UserDataProvider with ChangeNotifier {
             final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
             if (now >= exp) {
               debugPrint('Token has expired');
-              // Attempt to refresh the session instead of logging out immediately
-              await refreshUserProfile();
+              // PATCH: Guard refresh attempt to prevent orphan state
+              try {
+                await refreshUserProfile();
+                // CRITICAL: Verify refresh succeeded before continuing
+                if (_userProfile == null) {
+                  throw Exception('Token refresh failed - invalid session');
+                }
+              } catch (e) {
+                debugPrint('Token refresh failed: $e');
+                // Force logout on refresh failure
+                await logout();
+                return;
+              }
               return;
             }
           }
@@ -154,6 +165,9 @@ class UserDataProvider with ChangeNotifier {
         } else {
           debugPrint('No schoolId found in user profile');
         }
+        
+        // PATCH: Only set authenticated status after all data is loaded
+        // This prevents dashboard routing with incomplete context
         _updateStatus(UserDataStatus.authenticated);
 
         // Perform bulk sync for student data if user is a student

@@ -9,18 +9,18 @@ class AIAssistantService {
   final _geminiService = GeminiService();
 
   String _getCommandPrompt(String text, String? contextHint) {
-    // Base prompt structure
+    // Base prompt structure for custom rule-based assistant
     String prompt = '''
-You are an AI assistant for a school management app. Your task is to understand user commands and extract information into a structured JSON format.
+You are a rule-based AI assistant for a school management app. Your task is to understand user commands and extract information into a structured JSON format.
 The user said: "$text"
-The app has predefined lists of classes, subjects, and terms. Try to match the user's speech to the closest item in these lists.
+The app has predefined lists of classes, subjects, and terms. Try to match user's speech to closest item in these lists.
 Example Classes: "Senior 1 A", "Senior 2 B", "Senior 4"
 Example Subjects: "Mathematics", "English Language", "Physics"
 Example Terms: "Term 1", "Term 2", "Term 3".
 The current year is ${DateTime.now().year}.
 
-If the intent is not clear or does not match a possible intent, return a JSON object with intent "unknown".
-Output ONLY the JSON object.
+If intent is not clear or does not match a possible intent, return a JSON object with intent "unknown".
+Output ONLY JSON object.
 ''';
 
     // Add context-specific instructions

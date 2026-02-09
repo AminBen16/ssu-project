@@ -232,11 +232,13 @@ enum NetworkStatus {
   mesh,
   lan,
   internet,
+  disconnected,
 }
 
 /// Transport type enumeration
 enum TransportType {
   bluetooth,
+  wifi,
   wifiDirect,
   wifiInfrastructure,
   cellular,
@@ -245,6 +247,8 @@ enum TransportType {
   mesh,
   lan,
   internet,
+  rf,
+  satellite,
 }
 
 /// Message type enumeration

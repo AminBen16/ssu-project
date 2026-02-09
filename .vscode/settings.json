@@ -3,5 +3,5 @@
     "snyk.advanced.autoSelectOrganization": true,
     "Codegeex.GenerationPreference": "line by line",
     "Codegeex.SidebarUI.LanguagePreference": "English",
-    "CodeGPT.apiKey": "Anthropic"
+    "CodeGPT.apiKey": "Claude Code"
 }

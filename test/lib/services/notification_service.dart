@@ -2,6 +2,7 @@ import 'package:logger/logger.dart';
 import 'package:test/services/api_client.dart';
 import 'package:test/services/offline_service.dart';
 import 'package:test/services/local_database_service.dart';
+import 'package:flutter/foundation.dart';
 
 class NotificationService {
   final ApiClient _apiClient = ApiClient();
@@ -88,10 +89,40 @@ class NotificationService {
   /// Updates the read status of a notification in local cache
   Future<void> _updateLocalNotificationReadStatus(
       String notificationId, bool isRead) async {
+    // Get all cached notification data to find the one to update
+    final allCached = await _localDb.getAllData('notifications');
+    for (final entry in allCached) {
+      final studentId = entry['id'] as String;
+      final cachedData = await _localDb.getData('notifications', studentId);
+      if (cachedData != null && cachedData['notifications'] != null) {
+        final notifications =
+            List<Map<String, dynamic>>.from(cachedData['notifications']);
+        final notificationIndex =
+            notifications.indexWhere((n) => n['id'] == notificationId);
+        if (notificationIndex != -1) {
+          notifications[notificationIndex]['isRead'] = isRead;
+          notifications[notificationIndex]['lastUpdated'] =
+              DateTime.now().toIso8601String();
+          await _localDb.saveData('notifications', studentId, {
+            'notifications': notifications,
+            'lastUpdated': DateTime.now().toIso8601String(),
+          });
+          break; // Found and updated, exit loop
+        }
+      }
+    }
+  }
+
+  /// Marks a notification as read for a student
+  Future<void> markNotificationAsReadForStudent(
+      String studentId, String notificationId, bool isRead) async {
     // This is a simplified implementation. In a production app, you'd need to track
     // which student owns each notification. For now, we'll skip local cache updates
     // and rely on server sync to update the cache on next fetch.
     // TODO: Implement proper local cache update mechanism with studentId tracking
+    // For now, just log the action for debugging
+    debugPrint(
+        'Notification $notificationId marked as $isRead for student $studentId');
   }
 
   /// Gets the count of unread notifications

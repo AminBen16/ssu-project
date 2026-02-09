@@ -32,7 +32,7 @@ class _FullGradesScreenState extends State<FullGradesScreen> {
       body: FutureHandler<Map<String, dynamic>>(
         future: MarksService.getStudentGrades(
           int.parse(userData.userProfile!.schoolId!),
-          userData.userProfile!.uid,
+          int.parse(userData.userProfile!.uid),
         ),
         loadingWidget: const Center(child: CircularProgressIndicator()),
         emptyMessage: 'No grades available.',

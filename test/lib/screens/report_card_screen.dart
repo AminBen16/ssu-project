@@ -44,13 +44,25 @@ class _ReportCardScreenState extends State<ReportCardScreen> {
     ).school!.id.toString();
 
     setState(() {
-      _reportDataFuture = _reportService.getReportCardDisplayData(
-        schoolId: schoolId,
-        studentId: widget.studentId,
-        term: widget.term,
-        year: int.tryParse(widget.year) ?? DateTime.now().year,
-      );
+      _reportDataFuture = _fetchReportCardDisplayData(schoolId);
     });
+  }
+
+  Future<ReportCardDisplayData?> _fetchReportCardDisplayData(String schoolId) async {
+    final reportData = await _reportService.getReportCardData(
+      schoolId: schoolId,
+      studentId: widget.studentId,
+      term: widget.term,
+      year: int.tryParse(widget.year) ?? DateTime.now().year,
+    );
+
+    if (reportData == null) return null;
+
+    return ReportCardDisplayData(
+      reportData: reportData,
+      classTeacher: null,
+      headTeacher: null,
+    );
   }
 
   @override

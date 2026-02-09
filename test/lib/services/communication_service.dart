@@ -35,7 +35,7 @@ class CommunicationService {
 
   Future<void> initialize() async {
     _transportSub = _transport.incomingPayloads.listen(_handleIncomingPayload);
-    _discoverySub = _discovery.detectedPeers.listen(_handlePeersDetected);
+    _discoverySub = _discovery.detectedPeers.listen((peers) => _handlePeersDetected(peers.cast<Peer>()));
     await _discovery.startDiscovery();
   }
 
