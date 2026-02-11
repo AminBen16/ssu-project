@@ -339,23 +339,19 @@ class DatabaseService extends impl.DatabaseService {
 
   @override
   Future<bool> isUserEmailVerified(String userId) async {
+    if (!_columnExists('users', 'email_verified')) return false;
+    final stmt =
+        _db.prepare('SELECT email_verified FROM users WHERE id = ? LIMIT 1');
     try {
-      if (!_columnExists('users', 'email_verified')) return true;
-      final stmt =
-          _db.prepare('SELECT email_verified FROM users WHERE id = ? LIMIT 1');
-      try {
-        final rs = stmt.select([int.tryParse(userId) ?? userId]);
-        if (rs.isEmpty) return true;
-        final v = rs.first['email_verified'];
-        if (v is int) return v != 0;
-        if (v is bool) return v;
-        return (v?.toString().toLowerCase() == '1' ||
-            v?.toString().toLowerCase() == 'true');
-      } finally {
-        stmt.dispose();
-      }
-    } catch (e) {
-      return true;
+      final rs = stmt.select([int.tryParse(userId) ?? userId]);
+      if (rs.isEmpty) return false;
+      final v = rs.first['email_verified'];
+      if (v is int) return v != 0;
+      if (v is bool) return v;
+      return (v?.toString().toLowerCase() == '1' ||
+          v?.toString().toLowerCase() == 'true');
+    } finally {
+      stmt.dispose();
     }
   }
 

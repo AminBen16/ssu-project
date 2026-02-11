@@ -9,7 +9,8 @@ class ErrorHandlingService {
   ErrorHandlingService(this._meshChannels);
 
   /// Handles API errors with user-friendly messages
-  static String getErrorMessage(String errorCode, {Map<String, dynamic>? context = const {}}) {
+  static String getErrorMessage(String errorCode,
+      {Map<String, dynamic>? context = const {}}) {
     switch (errorCode) {
       case 'NETWORK_ERROR':
         return 'Network connection failed. Please check your internet connection and try again.';
@@ -46,7 +47,8 @@ class ErrorHandlingService {
   }
 
   /// Logs error for debugging
-  static void logError(String error, {String? stackTrace, Map<String, dynamic>? context = const {}}) {
+  static void logError(String error,
+      {String? stackTrace, Map<String, dynamic>? context = const {}}) {
     debugPrint('ERROR: $error');
     if (context != null && context.isNotEmpty) {
       debugPrint('Context: $context');
@@ -75,10 +77,12 @@ class ErrorHandlingService {
     if (response is Map && response.containsKey('error')) {
       final errorMessage = getErrorMessage(
         response['error'] as String,
-        context: (response['context'] as Map<dynamic, dynamic>?)?.cast<String, dynamic>(),
+        context: (response['context'] as Map<dynamic, dynamic>?)
+            ?.cast<String, dynamic>(),
       );
-      logError('API Error: $errorMessage', context: response.cast<String, dynamic>());
-      
+      logError('API Error: $errorMessage',
+          context: response.cast<String, dynamic>());
+
       if (onError != null) {
         onError(errorMessage);
       }
@@ -90,12 +94,16 @@ class ErrorHandlingService {
   /// Validates network connectivity before API calls
   static Future<bool> checkConnectivity() async {
     try {
-      // This would integrate with connectivity_plus in a real implementation
-      // For now, assume connectivity is available
-      return true;
+      // TODO: Integrate with connectivity_plus package for real connectivity checking
+      // For now, simulate connectivity check - this should be replaced with actual implementation
+      // Example: final result = await Connectivity().checkConnectivity();
+      // return result != ConnectivityResult.none;
+
+      // Simulate failure to indicate this needs real implementation
+      return false;
     } catch (e) {
       logError('Connectivity check failed: $e');
-      return false;
+      return false; // Return false on error instead of suppressing
     }
   }
 }

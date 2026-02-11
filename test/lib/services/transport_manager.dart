@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart' as fbp;
-import 'package:flutter_nearby_connections/flutter_nearby_connections.dart';
 import '../models/domain_models.dart';
+
 
 enum TransportType {
   bluetooth,
@@ -142,15 +142,13 @@ class BluetoothTransportManager implements TransportManager {
   }
 }
 
-/// Wi-Fi Direct Transport Manager using flutter_nearby_connections
-/// Integrates real Wi-Fi Direct peer-to-peer communication
+/// Wi-Fi Direct Transport Manager (Stub Implementation)
+/// Note: flutter_nearby_connections removed due to Android namespace issues
+/// Wi-Fi Direct functionality to be implemented via custom platform channels
 class WifiDirectTransportManager implements TransportManager {
   final StreamController<TransportPayload> _controller =
       StreamController.broadcast();
   final String localDeviceId;
-  NearbyService? _nearbyService;
-  StreamSubscription? _dataSubscription;
-  StreamSubscription? _stateSubscription;
 
   WifiDirectTransportManager(this.localDeviceId);
 
@@ -158,64 +156,33 @@ class WifiDirectTransportManager implements TransportManager {
   Stream<TransportPayload> get incomingPayloads => _controller.stream;
 
   Future<void> initialize() async {
-    _nearbyService = NearbyService();
-
-    _dataSubscription =
-        _nearbyService!.dataReceivedSubscription(callback: (data) {
-      final payload = utf8.decode(data['data']);
-      _controller.add(TransportPayload(
-        senderId: data['deviceId'],
-        content: payload,
-      ));
-    });
-
-    _stateSubscription =
-        _nearbyService!.stateChangedSubscription(callback: (devices) {
-      // Handle device state changes
-    });
+    // Stub implementation - Wi-Fi Direct not available
+    debugPrint('Wi-Fi Direct transport initialized (stub)');
   }
 
   Future<void> startAdvertising() async {
-    if (_nearbyService == null) return;
-
-    await _nearbyService!.init(
-      serviceType: 'school_comms',
-      deviceName: localDeviceId,
-      strategy: Strategy.p2pCluster,
-      callback: (isRunning) {
-        if (isRunning) {
-          // Start advertising and browsing
-          debugPrint('Starting peer advertising and browsing');
-        }
-      },
-    );
+    // Stub implementation
+    debugPrint('Wi-Fi Direct advertising not available (stub)');
   }
 
   @override
   Future<void> sendPayload(String targetDeviceId, String payload) async {
-    if (_nearbyService != null) {
-      // TODO: Implement proper message sending when API is available
-      debugPrint('Sending payload to $targetDeviceId: $payload');
-    }
+    // Stub implementation
+    debugPrint('Wi-Fi Direct send not available (stub)');
   }
 
   @override
   Future<void> broadcastPayload(String payload) async {
-    if (_nearbyService != null) {
-      // TODO: Implement proper broadcasting when API is available
-      debugPrint('Broadcasting payload: $payload');
-    }
+    // Stub implementation
+    debugPrint('Wi-Fi Direct broadcast not available (stub)');
   }
 
   @override
   Future<void> dispose() async {
-    await _dataSubscription?.cancel();
-    await _stateSubscription?.cancel();
-    await _nearbyService?.stopAdvertisingPeer();
-    await _nearbyService?.stopBrowsingForPeers();
     await _controller.close();
   }
 }
+
 
 /// Multi-Transport Manager that combines Bluetooth and Wi-Fi Direct
 /// Provides fallback and transport selection based on availability

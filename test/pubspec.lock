@@ -345,6 +345,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.11"
+  dio:
+    dependency: transitive
+    description:
+      name: dio
+      sha256: b9d46faecab38fc8cc286f80bc4d61a3bb5d4ac49e51ed877b4d6706efe57b25
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.9.1"
+  dio_web_adapter:
+    dependency: transitive
+    description:
+      name: dio_web_adapter
+      sha256: "7586e476d70caecaf1686d21eee7247ea43ef5c345eab9e0cc3583ff13378d78"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.1"
   dlibphonenumber:
     dependency: transitive
     description:
@@ -413,10 +429,10 @@ packages:
     dependency: "direct main"
     description:
       name: file_saver
-      sha256: d15caed672743a5c9356ad12d351696764c8bdb59aaf7bd299532aca9e8cb4a2
+      sha256: "017a127de686af2d2fbbd64afea97052d95f2a0f87d19d25b87e097407bf9c1e"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.12"
+    version: "0.2.14"
   file_selector_linux:
     dependency: transitive
     description:
@@ -534,14 +550,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.0"
-  flutter_nearby_connections:
-    dependency: "direct main"
-    description:
-      name: flutter_nearby_connections
-      sha256: f2003fde3df5d99ce15693b1603de168f66a2e7c50b84786191236cc32e3afdc
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.2"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:

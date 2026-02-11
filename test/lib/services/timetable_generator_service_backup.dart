@@ -128,15 +128,15 @@ class TimetableGeneratorService {
               teacherId: staff.id,
               subjectId: subject,
               minPeriodsPerWeek: _calculateMinPeriods(subject, subjects),
-              maxPeriodsPerDay: staff.profile?['maxPeriodsPerDay'] as int? ?? 6,
+              maxPeriodsPerDay: staff.maxPeriodsPerDay ?? 6,
               unavailableTimeSlots: _extractUnavailableSlots(staff),
               preferredTimeSlots: _extractPreferredSlots(staff),
-              maxConsecutivePeriods: staff.profile?['maxConsecutivePeriods'] as int? ?? 3,
+              maxConsecutivePeriods: staff.maxConsecutivePeriods ?? 3,
               preferredDays: _extractPreferredDays(staff),
               customConstraints: {
-                'teacherName': '${staff.firstName} ${staff.lastName}',
-                'qualification': staff.profile?['qualification'] ?? '',
-                'experience': staff.profile?['yearsOfExperience'] ?? 0,
+                'teacherName': staff.fullName,
+                'qualification': staff.qualification ?? '',
+                'experience': staff.yearsOfExperience ?? 0,
               },
             );
             
@@ -236,7 +236,7 @@ class TimetableGeneratorService {
   }
 
   /// Calculate minimum periods per week for a subject
-  static int _calculateMinPeriods(String subjectName, List<Subject> subjects) {
+  int _calculateMinPeriods(String subjectName, List<Subject> subjects) {
     final subject = subjects.where((s) => s.name == subjectName).firstOrNull;
     if (subject != null) {
       // Use subject description or metadata to determine periods
@@ -258,7 +258,7 @@ class TimetableGeneratorService {
   }
 
   /// Extract unavailable time slots from teacher profile
-  static List<String> _extractUnavailableSlots(dynamic staff) {
+  List<String> _extractUnavailableSlots(Staff staff) {
     final unavailableSlots = <String>[];
     
     if (staff.profile != null) {
@@ -292,7 +292,7 @@ class TimetableGeneratorService {
   }
 
   /// Extract preferred days from teacher profile
-  static List<String> _extractPreferredDays(dynamic staff) {
+  List<String> _extractPreferredDays(dynamic staff) {
     final preferredDays = <String>[];
     
     if (staff.profile != null) {
@@ -306,7 +306,7 @@ class TimetableGeneratorService {
   }
 
   /// Create subject-level constraints
-  static TimetableConstraint _createSubjectConstraint(Subject subject) {
+  TimetableConstraint _createSubjectConstraint(Subject subject) {
     final desc = subject.description?.toLowerCase() ?? '';
     
     int minPeriods = 2;
@@ -694,82 +694,7 @@ class TimetableGeneratorService {
     return max(0.0, 1.0 - (weightedConflicts / maxPossibleConflicts));
   }
 
-  /// Builds conflict graph for constraint satisfaction
-  static Map<String, dynamic> _buildConflictGraph({
-    required List<String> teachers,
-    required List<String> subjects,
-    required Map<String, TimetableConstraint> constraints,
-    required List<String> timeSlots,
-    required List<String> days,
-  }) {
-    final conflictGraph = <String, Set<String>>{};
-    final conflicts = <TimetableConflict>[];
-    
-    // Build teacher-subject compatibility graph
-    for (final teacherId in teachers) {
-      final teacherConstraint = constraints[teacherId];
-      if (teacherConstraint != null) {
-        // Check teacher availability
-        for (final unavailableSlot in teacherConstraint.unavailableTimeSlots) {
-          if (timeSlots.contains(unavailableSlot)) {
-            conflicts.add(TimetableConflict(
-              type: 'teacher',
-              description: 'Teacher $teacherId unavailable at $unavailableSlot',
-              details: {
-                'teacherId': teacherId,
-                'timeSlot': unavailableSlot,
-                'reason': 'unavailable',
-              },
-              severity: 2,
-            ));
-          }
-        }
-        
-        // Check max periods per day constraint
-        if (teacherConstraint.maxPeriodsPerDay < timeSlots.length) {
-          conflicts.add(TimetableConflict(
-            type: 'teacher',
-            description: 'Teacher $teacherId exceeds max periods per day',
-            details: {
-              'teacherId': teacherId,
-              'maxPeriods': teacherConstraint.maxPeriodsPerDay,
-              'actualPeriods': timeSlots.length,
-            },
-            severity: 2,
-          ));
-        }
-      }
-    }
-    
-    // Check subject distribution constraints
-    final subjectCounts = <String, int>{};
-    for (final subjectId in subjects) {
-      final subjectConstraint = constraints['subject_$subjectId'];
-      if (subjectConstraint != null) {
-        subjectCounts[subjectId] = 0;
-        
-        // Check minimum periods per week
-        if (subjectConstraint.minPeriodsPerWeek > (days.length * timeSlots.length / 2)) {
-          conflicts.add(TimetableConflict(
-            type: 'subject',
-            description: 'Subject $subjectId requires more periods than available',
-            details: {
-              'subjectId': subjectId,
-              'required': subjectConstraint.minPeriodsPerWeek,
-              'available': days.length * timeSlots.length ~/ 2,
-            },
-            severity: 3,
-          ));
-        }
-      }
-    }
-    
-    return {
-      'conflictGraph': conflictGraph,
-      'conflicts': conflicts,
-      'subjectCounts': subjectCounts,
-    };
-  }
+
 
   /// Advanced CSP solver with graph coloring and constraint propagation
   static Map<String, dynamic> _solveCSPWithGraphColoring({
@@ -2223,50 +2148,10 @@ class TimetableGeneratorService {
     return summary;
   }
 
-  /// Build conflict graph for CSP solving
-  static Map<String, dynamic> _buildConflictGraph({
-    required List<String> teachers,
-    required List<String> subjects,
-    required Map<String, TimetableConstraint> constraints,
-    required List<String> timeSlots,
-    required List<String> days,
-    required Map<String, dynamic> roomData,
-  }) {
-    final conflictGraph = <String, Set<String>>{};
-    final feasibilityScore = 0.8; // Simplified feasibility score
 
-    // Build conflict graph based on teacher-subject assignments
-    for (final teacher in teachers) {
-      for (final subject in subjects) {
-        final key = '${teacher}_$subject';
-        conflictGraph[key] = <String>{};
-        
-        // Add conflicts for same teacher with different subjects at same time
-        for (final otherSubject in subjects) {
-          if (subject != otherSubject) {
-            conflictGraph[key]!.add('${teacher}_$otherSubject');
-          }
-        }
-        
-        // Add conflicts for same subject with different teachers at same time
-        for (final otherTeacher in teachers) {
-          if (teacher != otherTeacher) {
-            conflictGraph[key]!.add('${otherTeacher}_$subject');
-          }
-        }
-      }
-    }
-
-    return {
-      'conflictGraph': conflictGraph,
-      'feasibilityScore': feasibilityScore,
-      'totalNodes': conflictGraph.length,
-      'totalEdges': conflictGraph.values.fold(0, (sum, edges) => sum + edges.length),
-    };
-  }
 
   /// Solve CSP using graph coloring algorithm
-  static Map<String, dynamic> _solveCSPWithGraphColoring({
+  Map<String, dynamic> _solveCSPWithGraphColoring({
     required List<String> teachers,
     required List<String> subjects,
     required Map<String, TimetableConstraint> constraints,

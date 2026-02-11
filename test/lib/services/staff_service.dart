@@ -1,12 +1,12 @@
 import 'package:test/services/api_client.dart';
 import 'package:test/models/user_roles.dart';
-import 'package:test/models/user_profile.dart';
+import 'package:test/models/staff.dart';
 
 class StaffService {
   final ApiClient _apiClient = ApiClient();
 
   /// Generic method to fetch staff based on query parameters.
-  Future<List<UserProfile>> _fetchStaff(
+  Future<List<Staff>> _fetchStaff(
       String schoolId, Map<String, String> queryParams) async {
     final response = await _apiClient.get(
       '/api/schools/$schoolId/staff',
@@ -16,21 +16,21 @@ class StaffService {
     if (response != null) {
       final List<dynamic> staffList = response as List<dynamic>;
       return staffList
-          .map((json) => UserProfile.fromMap(json, json['id']))
+          .map((json) => Staff.fromMap(json as Map<String, dynamic>))
           .toList();
     }
     return [];
   }
 
   /// Fetches all teaching staff for a given school.
-  Future<List<UserProfile>> getTeachingStaff(String schoolId) async {
+  Future<List<Staff>> getTeachingStaff(String schoolId) async {
     return _fetchStaff(schoolId, {
       'roles': UserRole.allTeachingRoles.map((r) => r.name).join(','),
     });
   }
 
   /// Fetches the class teacher for a specific class.
-  Future<UserProfile?> getClassTeacherForClass(
+  Future<Staff?> getClassTeacherForClass(
     String schoolId,
     String className,
   ) async {
@@ -44,7 +44,7 @@ class StaffService {
   }
 
   /// Fetches the head teacher for the school.
-  Future<UserProfile?> getHeadTeacher(String schoolId) async {
+  Future<Staff?> getHeadTeacher(String schoolId) async {
     final staff = await _fetchStaff(schoolId, {
       'role': UserRole.headTeacher.name,
       'limit': '1',
@@ -54,7 +54,7 @@ class StaffService {
 
   /// Fetches all staff members for a school.
   /// This replaces the previous stream-based approach.
-  Future<List<UserProfile>> getAllStaff(String schoolId) async {
+  Future<List<Staff>> getAllStaff(String schoolId) async {
     return _fetchStaff(schoolId,
         {'roles': UserRole.allStaffRoles.map((r) => r.name).join(',')});
   }

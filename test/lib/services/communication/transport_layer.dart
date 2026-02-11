@@ -127,13 +127,31 @@ class LanTransportLayer extends BaseTransportLayer {
 
   @override
   Future<bool> sendData(String data, String targetDeviceId) async {
-    // Placeholder for LAN socket sending
-    return true;
+    try {
+      // Check if target device is in discovered peers
+      final peers = await _peerDiscovery.getDiscoveredPeers();
+      final targetPeer = peers.where((peer) => peer.deviceId == targetDeviceId);
+      if (targetPeer.isEmpty) {
+        return false; // Target device not found
+      }
+
+      // TODO: Implement actual LAN socket sending
+      // For now, simulate failure to indicate this needs real implementation
+      return false;
+    } catch (e) {
+      return false; // Return false on any error instead of suppressing
+    }
   }
 
   @override
   Future<bool> isAvailable() async {
-    return true;
+    try {
+      // Check if there are any discovered peers
+      final peers = await _peerDiscovery.getDiscoveredPeers();
+      return peers.isNotEmpty;
+    } catch (e) {
+      return false; // Return false on error instead of always true
+    }
   }
 }
 

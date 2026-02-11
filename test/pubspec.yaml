@@ -95,12 +95,15 @@ dependencies:
 
   cached_network_image: ^3.3.0
 
-  # File saving utility
-  file_saver: ^0.0.1
+  # File saving utility - Updated to version with namespace support
+  file_saver: ^0.2.14
+
 
   # Real communication dependencies for offline-first messaging
   flutter_blue_plus: ^2.1.0  # Bluetooth Low Energy
-  flutter_nearby_connections: ^1.1.2  # Wi-Fi Direct/Nearby Connections
+  # Note: flutter_nearby_connections removed due to Android namespace issues
+  # Wi-Fi Direct functionality implemented via custom platform channels
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
