@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:test/services/curriculum_service.dart';
 
 class AIValidationService {
@@ -400,7 +402,7 @@ class AIValidationService {
 
       return objectives.take(5).toList(); // Limit to 5 objectives
     } catch (e) {
-      print('Error generating learning objectives: $e');
+      developer.log('Error generating learning objectives: $e');
       return [];
     }
   }
@@ -426,3 +428,4 @@ class AIValidationService {
     return true;
   }
 }
+

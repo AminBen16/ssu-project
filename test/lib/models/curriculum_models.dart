@@ -400,7 +400,63 @@ class GenericSkill {
   }
 }
 
+/// Competency Model for curriculum competencies
+class Competency {
+  final int? id;
+  final int topicId;
+  final String competencyType;
+  final String text;
+  final String? assessmentCriteria;
+  final String? keyConcepts;
+  final int? orderIndex;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+
+  Competency({
+    this.id,
+    required this.topicId,
+    required this.competencyType,
+    required this.text,
+    this.assessmentCriteria,
+    this.keyConcepts,
+    this.orderIndex,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'topic_id': topicId,
+      'competency_type': competencyType,
+      'text': text,
+      'assessment_criteria': assessmentCriteria,
+      'key_concepts': keyConcepts,
+      'order_index': orderIndex,
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+    };
+  }
+
+  factory Competency.fromMap(Map<String, dynamic> map) {
+    return Competency(
+      id: map['id'],
+      topicId: map['topic_id'],
+      competencyType: map['competency_type'] ?? '',
+      text: map['text'] ?? '',
+      assessmentCriteria: map['assessment_criteria'],
+      keyConcepts: map['key_concepts'],
+      orderIndex: map['order_index'],
+      createdAt:
+          map['created_at'] != null ? DateTime.parse(map['created_at']) : null,
+      updatedAt:
+          map['updated_at'] != null ? DateTime.parse(map['updated_at']) : null,
+    );
+  }
+}
+
 /// Legacy Curriculum Subject Model (for backward compatibility)
+
 class CurriculumSubject {
   final int? id;
   final String name;

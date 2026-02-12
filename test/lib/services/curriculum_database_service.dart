@@ -960,4 +960,16 @@ class CurriculumDatabaseService {
       await txn.delete('subjects');
     });
   }
+
+  // Competency CRUD operations
+  static Future<List<Competency>> getCompetenciesByTopic(int topicId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'competencies',
+      where: 'topic_id = ?',
+      whereArgs: [topicId],
+      orderBy: 'order_index ASC',
+    );
+    return List.generate(maps.length, (i) => Competency.fromMap(maps[i]));
+  }
 }

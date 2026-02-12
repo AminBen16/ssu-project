@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:test/services/auth_service.dart';
 import 'package:test/models/user_roles.dart';
 import 'package:test/providers/user_data_provider.dart';
@@ -20,9 +22,9 @@ class StaffAuthService {
     UserRole? specificRole,
   }) async {
     try {
-      debugPrint('StaffAuthService: Authenticating staff user: $email');
+      developer.log('StaffAuthService: Authenticating staff user: $email');
       if (specificRole != null) {
-        debugPrint(
+        developer.log(
             'StaffAuthService: Specific role provided: ${specificRole.displayName}');
       }
 
@@ -32,7 +34,7 @@ class StaffAuthService {
         password: password,
       );
 
-      debugPrint(
+      developer.log(
           'StaffAuthService: Authentication successful, triggering user switch');
 
       // PATCH: Guard navigation until profile is fully loaded
@@ -53,10 +55,10 @@ class StaffAuthService {
         }
       }
 
-      debugPrint(
+      developer.log(
           'StaffAuthService: User switch completed, AuthWrapper will handle routing');
     } catch (e) {
-      debugPrint('StaffAuthService: Authentication failed: $e');
+      developer.log('StaffAuthService: Authentication failed: $e');
       rethrow;
     }
   }
@@ -69,14 +71,14 @@ class StaffAuthService {
 
     // 1. Check availability
     if (!await userDataProvider.isBiometricsAvailable) {
-      debugPrint('Biometrics not available or not configured.');
+      developer.log('Biometrics not available or not configured.');
       return false;
     }
 
     // 2. Authenticate
     final authenticated = await userDataProvider.authenticateWithBiometrics();
     if (!authenticated) {
-      debugPrint('Biometric authentication failed or cancelled.');
+      developer.log('Biometric authentication failed or cancelled.');
       return false;
     }
 
@@ -220,3 +222,4 @@ class StaffAuthService {
     return role.defaultFeatures;
   }
 }
+

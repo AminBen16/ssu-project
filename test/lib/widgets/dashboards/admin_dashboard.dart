@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test/screens/fee_management_screen.dart';
@@ -210,7 +212,7 @@ class AdminDashboard extends StatelessWidget {
                       actions: [
                         _ActionCard(
                           title: 'Fee Management',
-                          icon: Icons.receipt_long,
+                          icon: Icons.credit_card,
                           onTap: () {
                             Navigator.of(context).push(MaterialPageRoute(
                               builder: (_) => const FeeManagementScreen(),
@@ -428,7 +430,7 @@ class AdminDashboard extends StatelessWidget {
       final schoolId = userData.userProfile?.schoolId;
 
       if (schoolId == null) {
-        debugPrint('School ID not found, returning zero counts');
+        developer.log('School ID not found, returning zero counts');
         return {'staff': 0, 'students': 0};
       }
 
@@ -447,7 +449,7 @@ class AdminDashboard extends StatelessWidget {
             staffCount++;
           }
         } catch (e) {
-          debugPrint('Error processing user role for ${user.email}: $e');
+          developer.log('Error processing user role for ${user.email}: $e');
           // Continue counting other users
         }
       }
@@ -458,19 +460,20 @@ class AdminDashboard extends StatelessWidget {
         final students = await studentService.getStudentsBySchool(schoolId);
         studentCount = students.length;
       } catch (e) {
-        debugPrint('Error fetching students: $e');
+        developer.log('Error fetching students: $e');
         // studentCount remains 0
       }
 
-      debugPrint('Real-time stats: Staff=$staffCount, Students=$studentCount');
+      developer
+          .log('Real-time stats: Staff=$staffCount, Students=$studentCount');
 
       return {
         'staff': staffCount,
         'students': studentCount,
       };
     } catch (e, stackTrace) {
-      debugPrint('Error fetching real-time stats: $e');
-      debugPrint('Stack trace: $stackTrace');
+      developer.log('Error fetching real-time stats: $e');
+      developer.log('Stack trace: $stackTrace');
       return {
         'staff': 0,
         'students': 0,

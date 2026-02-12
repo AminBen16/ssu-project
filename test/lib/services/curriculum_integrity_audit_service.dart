@@ -1,5 +1,5 @@
-import 'dart:convert';
-import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
+
 import 'curriculum_database_service.dart';
 import '../models/enhanced_curriculum_models.dart';
 
@@ -630,6 +630,7 @@ class CurriculumIntegrityAuditService {
   static Future<void> scheduleIntegrityChecks() async {
     // This could be implemented with a background job scheduler
     // For now, we'll just log that checks should be scheduled
-    print('Integrity checks should be scheduled to run periodically');
+    developer.log('Integrity checks should be scheduled to run periodically');
   }
 }
+

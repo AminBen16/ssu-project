@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
@@ -59,32 +61,32 @@ class _AudioChatScreenState extends State<AudioChatScreen> {
       });
 
       _socket!.onConnect((_) {
-        debugPrint('Connected to Socket.IO server');
+        developer.log('Connected to Socket.IO server');
       });
 
       _socket!.on('audio', (data) {
-        debugPrint('Received audio data');
+        developer.log('Received audio data');
         _playAudio(data);
       });
 
       _socket!.onDisconnect((_) {
-        debugPrint('Disconnected from Socket.IO server');
+        developer.log('Disconnected from Socket.IO server');
       });
 
       _socket!.onError((err) {
-        debugPrint('Socket.IO error: $err');
+        developer.log('Socket.IO error: $err');
       });
 
       _socket!.onReconnect((attempt) {
-        debugPrint('Reconnected after $attempt attempts');
+        developer.log('Reconnected after $attempt attempts');
       });
 
       _socket!.on('reconnecting', (attempt) {
-        debugPrint('Attempting to reconnect... (Attempt: $attempt)');
+        developer.log('Attempting to reconnect... (Attempt: $attempt)');
       });
       _socket!.connect();
     } catch (e) {
-      debugPrint(e.toString());
+      developer.log(e.toString());
     }
   }
 
@@ -99,7 +101,7 @@ class _AudioChatScreenState extends State<AudioChatScreen> {
           // You can also emit volume levels for visual feedback
           _socket!.emit('audioStream', recordData.decibels);
         }
-      }, onError: (e) => debugPrint('recorder stream error: $e'));
+      }, onError: (e) => developer.log('recorder stream error: $e'));
 
       await _audioRecorder.startRecorder(
         toFile: _recordingPath,
@@ -110,7 +112,7 @@ class _AudioChatScreenState extends State<AudioChatScreen> {
         _isRecording = true;
       });
     } catch (e) {
-      debugPrint('Error starting recording: $e');
+      developer.log('Error starting recording: $e');
     }
   }
 
@@ -129,13 +131,13 @@ class _AudioChatScreenState extends State<AudioChatScreen> {
 
   Future<void> _sendAudio(String path) async {
     try {
-      debugPrint('Sending audio: $path');
+      developer.log('Sending audio: $path');
       File audioFile = File(path);
       Uint8List audioBytes = await audioFile.readAsBytes();
-      debugPrint('Audio byte count: ${audioBytes.length}');
+      developer.log('Audio byte count: ${audioBytes.length}');
       _socket!.emit('audio', audioBytes);
     } catch (e) {
-      debugPrint('Error sending audio: $e');
+      developer.log('Error sending audio: $e');
     }
   }
 
@@ -154,7 +156,7 @@ class _AudioChatScreenState extends State<AudioChatScreen> {
         _isPlaying = true;
       });
     } catch (e) {
-      debugPrint('Error playing audio: $e');
+      developer.log('Error playing audio: $e');
     }
   }
 
@@ -189,3 +191,4 @@ class _AudioChatScreenState extends State<AudioChatScreen> {
     );
   }
 }
+

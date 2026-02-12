@@ -1,5 +1,7 @@
-import 'package:flutter/foundation.dart';
+import 'dart:developer' as developer;
+
 import 'package:test/services/api_client.dart';
+
 import 'package:test/services/offline_service.dart';
 import 'package:test/services/local_database_service.dart';
 
@@ -58,7 +60,7 @@ class EnrollmentService {
       // The response is already a decoded Map.
       return response;
     } catch (e) {
-      debugPrint('An error occurred during enrollment: $e');
+      developer.log('An error occurred during enrollment: $e');
       // Re-throw the exception to be handled by the UI.
       rethrow;
     }

@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:test/services/curriculum_service.dart';
 
 class NCDCurriculumService {
@@ -153,7 +155,7 @@ class NCDCurriculumService {
 
       return allTopics;
     } catch (e) {
-      print('Error getting curriculum topics: $e');
+      developer.log('Error getting curriculum topics: $e');
       return [];
     }
   }
@@ -188,7 +190,7 @@ class NCDCurriculumService {
 
       return approvedSubjects;
     } catch (e) {
-      print('Error getting approved subjects: $e');
+      developer.log('Error getting approved subjects: $e');
       return [];
     }
   }
@@ -309,3 +311,4 @@ class NCDCurriculumService {
     return assessments;
   }
 }
+

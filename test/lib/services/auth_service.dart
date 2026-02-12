@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart';
+import 'dart:developer' as developer;
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:test/custom_exceptions.dart';
 import 'package:test/services/api_client.dart';
@@ -84,7 +85,7 @@ class AuthService {
     // Clear JWTs and any other sensitive stored credentials.
     await _secureStorage.delete(key: _jwtTokenKey);
     await _secureStorage.delete(key: _refreshTokenKey);
-    
+
     // Optionally clear remember me preference
     if (clearRememberMe) {
       await _secureStorage.delete(key: 'remember_me');
@@ -108,7 +109,7 @@ class AuthService {
           .post('/api/verify-password', body: {'password': password});
       return true;
     } catch (e) {
-      debugPrint('Re-authentication failed: $e');
+      developer.log('Re-authentication failed: $e');
       return false;
     }
   }
@@ -134,7 +135,7 @@ class AuthService {
         'newPassword': newPassword,
       });
     } catch (e) {
-      debugPrint('Failed to change password: $e');
+      developer.log('Failed to change password: $e');
       throw Exception('Failed to change password: ${e.toString()}');
     }
   }
@@ -145,7 +146,7 @@ class AuthService {
       await _apiClient.delete('/auth/users/$userId');
       await signOut(); // Clear local tokens after deletion
     } catch (e) {
-      debugPrint('Failed to delete account: $e');
+      developer.log('Failed to delete account: $e');
       throw Exception('Failed to delete account: ${e.toString()}');
     }
   }
@@ -159,14 +160,14 @@ class AuthService {
       if (token == null) {
         throw Exception('No access token received from server');
       }
-      
+
       await _secureStorage.write(key: _jwtTokenKey, value: token);
-      
+
       if (refreshToken != null) {
         await _secureStorage.write(key: _refreshTokenKey, value: refreshToken);
       }
     } catch (e) {
-      debugPrint('Could not parse or store tokens: $e');
+      developer.log('Could not parse or store tokens: $e');
       // Re-throw the exception so the UI can handle it properly
       throw Exception('Failed to store authentication tokens: ${e.toString()}');
     }

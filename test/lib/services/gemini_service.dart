@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
@@ -26,7 +28,7 @@ class GeminiService {
 
   /// Generates text response using rule-based pattern matching.
   Future<String?> generateText(String prompt) async {
-    debugPrint('Custom assistant processing: $prompt');
+    developer.log('Custom assistant processing: $prompt');
     
     // Extract command type from prompt
     final commandType = _extractCommandType(prompt);
@@ -56,7 +58,7 @@ class GeminiService {
     required String prompt, 
     required Uint8List imageBytes
   }) async {
-    debugPrint('Image analysis request: $prompt');
+    developer.log('Image analysis request: $prompt');
     
     // Simple keyword-based image analysis
     final lowerPrompt = prompt.toLowerCase();
@@ -74,28 +76,28 @@ class GeminiService {
 
   String _extractCommandType(String prompt) {
     final lowerPrompt = prompt.toLowerCase();
-    debugPrint('Extracting command type from: "$prompt"');
+    developer.log('Extracting command type from: "$prompt"');
     
     // Check for help command first (highest priority)
     // More precise help detection
     if (lowerPrompt.startsWith('help') || 
         lowerPrompt.contains(' what can you do') ||
         (lowerPrompt.contains('help me') && !lowerPrompt.contains('navigate') && !lowerPrompt.contains('open'))) {
-      debugPrint('Detected help command');
+      developer.log('Detected help command');
       return 'help';
     }
     
     if (lowerPrompt.contains('navigate') || lowerPrompt.contains('open') || lowerPrompt.contains('go to')) {
-      debugPrint('Detected navigate command');
+      developer.log('Detected navigate command');
       return 'navigate';
     }
     
     if (lowerPrompt.contains('marks') || lowerPrompt.contains('grade') || lowerPrompt.contains('score')) {
-      debugPrint('Detected marks_entry command');
+      developer.log('Detected marks_entry command');
       return 'marks_entry';
     }
     
-    debugPrint('Detected unknown command');
+    developer.log('Detected unknown command');
     return 'unknown';
   }
 
@@ -219,3 +221,4 @@ Try commands like:
     return 'I can see this is a math problem. Please tell me what specific calculation you need help with (add, subtract, multiply, divide).';
   }
 }
+

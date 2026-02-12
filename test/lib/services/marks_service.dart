@@ -1,8 +1,9 @@
+import 'dart:developer' as developer;
+
 import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter/foundation.dart';
 import 'curriculum_database_service.dart';
 
 /// Service for managing student marks and grades
@@ -282,9 +283,10 @@ class MarksService {
       }
     } catch (e) {
       // If curriculum database is not available, fallback to placeholder
-      debugPrint('Error fetching subject name: $e');
+      developer.log('Error fetching subject name: $e');
     }
     
     return 'Subject $subjectId'; // Fallback to existing placeholder format
   }
 }
+

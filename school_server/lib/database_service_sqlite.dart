@@ -45,6 +45,40 @@ class DatabaseService extends impl.DatabaseService {
 
         print('Database schema initialized successfully');
       }
+
+      // Ensure additional columns exist for existing databases
+      try {
+        // Email verification columns
+        if (!_columnExists('users', 'email_verified')) {
+          _db.execute(
+              'ALTER TABLE users ADD COLUMN email_verified BOOLEAN DEFAULT FALSE');
+        }
+        if (!_columnExists('users', 'verification_token')) {
+          _db.execute('ALTER TABLE users ADD COLUMN verification_token TEXT');
+        }
+        if (!_columnExists('users', 'verification_expires')) {
+          _db.execute('ALTER TABLE users ADD COLUMN verification_expires TEXT');
+        }
+
+        // User settings columns
+        if (!_columnExists('users', 'theme_color')) {
+          _db.execute('ALTER TABLE users ADD COLUMN theme_color INTEGER');
+        }
+        if (!_columnExists('users', 'theme_mode')) {
+          _db.execute('ALTER TABLE users ADD COLUMN theme_mode TEXT');
+        }
+        if (!_columnExists('users', 'is_first_time_setup_complete')) {
+          _db.execute(
+              'ALTER TABLE users ADD COLUMN is_first_time_setup_complete BOOLEAN DEFAULT FALSE');
+        }
+
+        // Schools table classification column
+        if (!_columnExists('schools', 'classification')) {
+          _db.execute('ALTER TABLE schools ADD COLUMN classification TEXT');
+        }
+      } catch (e) {
+        print('Error adding columns: $e');
+      }
     } catch (e) {
       print('Error initializing schema: $e');
     }
@@ -209,6 +243,158 @@ class DatabaseService extends impl.DatabaseService {
       )
     ''');
 
+    // Add user settings columns
+    if (!_columnExists('users', 'theme_color')) {
+      _db.execute('ALTER TABLE users ADD COLUMN theme_color INTEGER');
+    }
+    if (!_columnExists('users', 'theme_mode')) {
+      _db.execute('ALTER TABLE users ADD COLUMN theme_mode TEXT');
+    }
+    if (!_columnExists('users', 'is_first_time_setup_complete')) {
+      _db.execute(
+          'ALTER TABLE users ADD COLUMN is_first_time_setup_complete BOOLEAN DEFAULT FALSE');
+    }
+
+    // Exam results table
+    _db.execute('''
+      CREATE TABLE IF NOT EXISTS exam_results (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        exam_id INTEGER NOT NULL,
+        student_id INTEGER NOT NULL,
+        subject_id INTEGER NOT NULL,
+        marks_obtained REAL NOT NULL,
+        total_marks REAL NOT NULL,
+        grade TEXT,
+        comments TEXT,
+        recorded_by INTEGER NOT NULL,
+        recorded_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (exam_id) REFERENCES exams (id) ON DELETE CASCADE,
+        FOREIGN KEY (student_id) REFERENCES students (id) ON DELETE CASCADE,
+        FOREIGN KEY (subject_id) REFERENCES subjects (id) ON DELETE CASCADE,
+        FOREIGN KEY (recorded_by) REFERENCES users (id)
+      )
+    ''');
+
+    // Fee structures table
+    _db.execute('''
+      CREATE TABLE IF NOT EXISTS fee_structures (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        school_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        description TEXT,
+        amount REAL NOT NULL,
+        frequency TEXT NOT NULL DEFAULT 'termly',
+        class_id INTEGER,
+        is_active BOOLEAN DEFAULT TRUE,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (school_id) REFERENCES schools (id) ON DELETE CASCADE,
+        FOREIGN KEY (class_id) REFERENCES classes (id) ON DELETE SET NULL
+      )
+    ''');
+
+    // Curriculum tables
+    _db.execute('''
+      CREATE TABLE IF NOT EXISTS curriculum_subjects (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        education_level TEXT NOT NULL,
+        description TEXT,
+        periods_per_week_s1_s2 INTEGER,
+        periods_per_week_s3_s4 INTEGER,
+        rationale TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+
+    _db.execute('''
+      CREATE TABLE IF NOT EXISTS curriculum_strands (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        subject_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        senior_level TEXT,
+        term TEXT,
+        duration_periods INTEGER,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (subject_id) REFERENCES curriculum_subjects (id) ON DELETE CASCADE
+      )
+    ''');
+
+    _db.execute('''
+      CREATE TABLE IF NOT EXISTS curriculum_topics (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        strand_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        competency TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (strand_id) REFERENCES curriculum_strands (id) ON DELETE CASCADE
+      )
+    ''');
+
+    _db.execute('''
+      CREATE TABLE IF NOT EXISTS curriculum_competences (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        topic_id INTEGER NOT NULL,
+        competence TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (topic_id) REFERENCES curriculum_topics (id) ON DELETE CASCADE
+      )
+    ''');
+
+    _db.execute('''
+      CREATE TABLE IF NOT EXISTS curriculum_learning_outcomes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        topic_id INTEGER NOT NULL,
+        outcome TEXT NOT NULL,
+        outcome_type TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (topic_id) REFERENCES curriculum_topics (id) ON DELETE CASCADE
+      )
+    ''');
+
+    _db.execute('''
+      CREATE TABLE IF NOT EXISTS curriculum_activities (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        topic_id INTEGER NOT NULL,
+        activity TEXT NOT NULL,
+        type TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (topic_id) REFERENCES curriculum_topics (id) ON DELETE CASCADE
+      )
+    ''');
+
+    _db.execute('''
+      CREATE TABLE IF NOT EXISTS curriculum_materials (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        topic_id INTEGER NOT NULL,
+        material TEXT NOT NULL,
+        type TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (topic_id) REFERENCES curriculum_topics (id) ON DELETE CASCADE
+      )
+    ''');
+
+    _db.execute('''
+      CREATE TABLE IF NOT EXISTS curriculum_assessments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        topic_id INTEGER NOT NULL,
+        assessment TEXT NOT NULL,
+        type TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (topic_id) REFERENCES curriculum_topics (id) ON DELETE CASCADE
+      )
+    ''');
+
     // Create indexes
     _db.execute(
         'CREATE INDEX IF NOT EXISTS idx_classes_school_id ON classes (school_id)');
@@ -220,11 +406,21 @@ class DatabaseService extends impl.DatabaseService {
         'CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(is_read)');
     _db.execute(
         'CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at DESC)');
+    _db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_exam_results_exam_id ON exam_results(exam_id)');
+    _db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_exam_results_student_id ON exam_results(student_id)');
+    _db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_fee_structures_school_id ON fee_structures(school_id)');
+    _db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_curriculum_strands_subject_id ON curriculum_strands(subject_id)');
+    _db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_curriculum_topics_strand_id ON curriculum_topics(strand_id)');
   }
 
   Future<void> _createTables() async {
     final tables = [
-      'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT "parent", first_name TEXT, last_name TEXT, profile_picture_url TEXT, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)',
+      'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT "parent", first_name TEXT, last_name TEXT, profile_picture_url TEXT, phone_number TEXT, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)',
       'CREATE TABLE IF NOT EXISTS students (id INTEGER PRIMARY KEY AUTOINCREMENT, first_name TEXT NOT NULL, last_name TEXT NOT NULL, date_of_birth DATE NOT NULL, class_id INTEGER NOT NULL, admission_date DATE NOT NULL DEFAULT CURRENT_DATE, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)',
       'CREATE TABLE IF NOT EXISTS exams (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, class_id INTEGER NOT NULL, subject_id INTEGER NOT NULL, exam_date DATE NOT NULL, max_marks INTEGER NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)',
       'CREATE TABLE IF NOT EXISTS fees (id INTEGER PRIMARY KEY AUTOINCREMENT, student_id INTEGER NOT NULL, amount REAL NOT NULL, due_date DATE NOT NULL, status TEXT NOT NULL DEFAULT "pending", created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)',
@@ -544,6 +740,286 @@ class DatabaseService extends impl.DatabaseService {
     }
   }
 
+  // Curriculum management methods
+  @override
+  Future<int> insertSubject(Map<String, dynamic> subject) async {
+    final stmt = _db.prepare('''
+      INSERT INTO curriculum_subjects (name, education_level, description, periods_per_week_s1_s2, periods_per_week_s3_s4, rationale, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    ''');
+    try {
+      stmt.execute([
+        subject['name'],
+        subject['education_level'],
+        subject['description'],
+        subject['periods_per_week_s1_s2'],
+        subject['periods_per_week_s3_s4'],
+        subject['rationale'],
+      ]);
+      return _db.lastInsertRowId;
+    } finally {
+      stmt.dispose();
+    }
+  }
+
+  @override
+  Future<int> insertStrand(Map<String, dynamic> strand) async {
+    final stmt = _db.prepare('''
+      INSERT INTO curriculum_strands (subject_id, name, senior_level, term, duration_periods, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    ''');
+    try {
+      stmt.execute([
+        strand['subject_id'],
+        strand['name'],
+        strand['senior_level'],
+        strand['term'],
+        strand['duration_periods'],
+      ]);
+      return _db.lastInsertRowId;
+    } finally {
+      stmt.dispose();
+    }
+  }
+
+  @override
+  Future<int> insertTopic(Map<String, dynamic> topic) async {
+    final stmt = _db.prepare('''
+      INSERT INTO curriculum_topics (strand_id, name, competency, created_at, updated_at)
+      VALUES (?, ?, ?, datetime('now'), datetime('now'))
+    ''');
+    try {
+      stmt.execute([
+        topic['strand_id'],
+        topic['name'],
+        topic['competency'],
+      ]);
+      return _db.lastInsertRowId;
+    } finally {
+      stmt.dispose();
+    }
+  }
+
+  @override
+  Future<int> insertSubTopic(Map<String, dynamic> subTopic) async {
+    // Subtopics are stored as topics with parent relationship
+    final stmt = _db.prepare('''
+      INSERT INTO curriculum_topics (strand_id, name, competency, created_at, updated_at)
+      VALUES (?, ?, ?, datetime('now'), datetime('now'))
+    ''');
+    try {
+      stmt.execute([
+        subTopic['strand_id'],
+        subTopic['name'],
+        subTopic['competency'],
+      ]);
+      return _db.lastInsertRowId;
+    } finally {
+      stmt.dispose();
+    }
+  }
+
+  @override
+  Future<int> insertLearningOutcome(Map<String, dynamic> outcome) async {
+    final stmt = _db.prepare('''
+      INSERT INTO curriculum_learning_outcomes (topic_id, outcome, outcome_type, created_at, updated_at)
+      VALUES (?, ?, ?, datetime('now'), datetime('now'))
+    ''');
+    try {
+      stmt.execute([
+        outcome['topic_id'],
+        outcome['outcome'],
+        outcome['outcome_type'],
+      ]);
+      return _db.lastInsertRowId;
+    } finally {
+      stmt.dispose();
+    }
+  }
+
+  @override
+  Future<int> insertSuggestedActivity(Map<String, dynamic> activity) async {
+    final stmt = _db.prepare('''
+      INSERT INTO curriculum_activities (topic_id, activity, type, created_at, updated_at)
+      VALUES (?, ?, ?, datetime('now'), datetime('now'))
+    ''');
+    try {
+      stmt.execute([
+        activity['topic_id'],
+        activity['activity'],
+        activity['type'],
+      ]);
+      return _db.lastInsertRowId;
+    } finally {
+      stmt.dispose();
+    }
+  }
+
+  @override
+  Future<int> insertAssessmentStrategy(Map<String, dynamic> strategy) async {
+    final stmt = _db.prepare('''
+      INSERT INTO curriculum_assessments (topic_id, assessment, type, created_at, updated_at)
+      VALUES (?, ?, ?, datetime('now'), datetime('now'))
+    ''');
+    try {
+      stmt.execute([
+        strategy['topic_id'],
+        strategy['assessment'],
+        strategy['type'],
+      ]);
+      return _db.lastInsertRowId;
+    } finally {
+      stmt.dispose();
+    }
+  }
+
+  @override
+  Future<int> insertCrossCuttingIssue(Map<String, dynamic> issue) async {
+    // Cross-cutting issues are stored as activities with special type
+    final stmt = _db.prepare('''
+      INSERT INTO curriculum_activities (topic_id, activity, type, created_at, updated_at)
+      VALUES (?, ?, 'cross_cutting_issue', datetime('now'), datetime('now'))
+    ''');
+    try {
+      stmt.execute([
+        issue['topic_id'],
+        issue['issue'],
+      ]);
+      return _db.lastInsertRowId;
+    } finally {
+      stmt.dispose();
+    }
+  }
+
+  @override
+  Future<int> insertValue(Map<String, dynamic> value) async {
+    // Values are stored as activities with special type
+    final stmt = _db.prepare('''
+      INSERT INTO curriculum_activities (topic_id, activity, type, created_at, updated_at)
+      VALUES (?, ?, 'value', datetime('now'), datetime('now'))
+    ''');
+    try {
+      stmt.execute([
+        value['topic_id'],
+        value['value'],
+      ]);
+      return _db.lastInsertRowId;
+    } finally {
+      stmt.dispose();
+    }
+  }
+
+  @override
+  Future<int> insertGenericSkill(Map<String, dynamic> skill) async {
+    // Generic skills are stored as activities with special type
+    final stmt = _db.prepare('''
+      INSERT INTO curriculum_activities (topic_id, activity, type, created_at, updated_at)
+      VALUES (?, ?, 'generic_skill', datetime('now'), datetime('now'))
+    ''');
+    try {
+      stmt.execute([
+        skill['topic_id'],
+        skill['skill'],
+      ]);
+      return _db.lastInsertRowId;
+    } finally {
+      stmt.dispose();
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getSubjects() async {
+    final rs = _db.select('SELECT * FROM curriculum_subjects ORDER BY name');
+    return rs.map((r) => _rowToMap(rs, r)).toList();
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getStrandsBySubject(int subjectId) async {
+    final stmt = _db.prepare(
+        'SELECT * FROM curriculum_strands WHERE subject_id = ? ORDER BY name');
+    try {
+      final rs = stmt.select([subjectId]);
+      return rs.map((r) => _rowToMap(rs, r)).toList();
+    } finally {
+      stmt.dispose();
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getTopicsByStrand(int strandId) async {
+    final stmt = _db.prepare(
+        'SELECT * FROM curriculum_topics WHERE strand_id = ? ORDER BY name');
+    try {
+      final rs = stmt.select([strandId]);
+      return rs.map((r) => _rowToMap(rs, r)).toList();
+    } finally {
+      stmt.dispose();
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getLearningOutcomesByTopic(
+      int topicId) async {
+    final stmt = _db.prepare(
+        'SELECT * FROM curriculum_learning_outcomes WHERE topic_id = ? ORDER BY outcome');
+    try {
+      final rs = stmt.select([topicId]);
+      return rs.map((r) => _rowToMap(rs, r)).toList();
+    } finally {
+      stmt.dispose();
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getActivitiesByOutcome(
+      int outcomeId) async {
+    // Activities are linked to topics, not outcomes directly
+    // Get topic_id from outcome first
+    final outcomeStmt = _db.prepare(
+        'SELECT topic_id FROM curriculum_learning_outcomes WHERE id = ?');
+    try {
+      final outcomeRs = outcomeStmt.select([outcomeId]);
+      if (outcomeRs.isEmpty) return [];
+
+      final topicId = outcomeRs.first['topic_id'];
+      final activityStmt = _db.prepare(
+          'SELECT * FROM curriculum_activities WHERE topic_id = ? ORDER BY activity');
+      try {
+        final rs = activityStmt.select([topicId]);
+        return rs.map((r) => _rowToMap(rs, r)).toList();
+      } finally {
+        activityStmt.dispose();
+      }
+    } finally {
+      outcomeStmt.dispose();
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getStrategiesByOutcome(
+      int outcomeId) async {
+    // Assessment strategies are linked to topics, not outcomes directly
+    // Get topic_id from outcome first
+    final outcomeStmt = _db.prepare(
+        'SELECT topic_id FROM curriculum_learning_outcomes WHERE id = ?');
+    try {
+      final outcomeRs = outcomeStmt.select([outcomeId]);
+      if (outcomeRs.isEmpty) return [];
+
+      final topicId = outcomeRs.first['topic_id'];
+      final strategyStmt = _db.prepare(
+          'SELECT * FROM curriculum_assessments WHERE topic_id = ? ORDER BY assessment');
+      try {
+        final rs = strategyStmt.select([topicId]);
+        return rs.map((r) => _rowToMap(rs, r)).toList();
+      } finally {
+        strategyStmt.dispose();
+      }
+    } finally {
+      outcomeStmt.dispose();
+    }
+  }
+
   // Subject management methods
   @override
   Future<Map<String, dynamic>> createSubject(
@@ -842,46 +1318,125 @@ class DatabaseService extends impl.DatabaseService {
     String? grade,
     String? comments,
   }) async {
-    // For now, return dummy data since exam_results table is not implemented
-    return {
-      'id': '1',
-      'exam_id': examId,
-      'student_id': studentId,
-      'marks_obtained': marksObtained,
-      'total_marks': totalMarks,
-      'grade': grade,
-      'comments': comments,
-    };
+    final stmt = _db.prepare('''
+      INSERT INTO exam_results (
+        exam_id, student_id, subject_id, marks_obtained, total_marks,
+        grade, comments, recorded_by, recorded_at, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), datetime('now'))
+    ''');
+    try {
+      stmt.execute([
+        int.tryParse(examId) ?? 0,
+        int.tryParse(studentId) ?? 0,
+        int.tryParse(subjectId) ?? 0,
+        marksObtained,
+        totalMarks,
+        grade,
+        comments,
+        int.tryParse(recordedBy) ?? 0,
+      ]);
+
+      final rs = _db
+          .select('SELECT * FROM exam_results WHERE id = last_insert_rowid()');
+      return _rowToMap(rs, rs.first);
+    } finally {
+      stmt.dispose();
+    }
   }
 
   @override
   Future<Map<String, dynamic>?> getExamResultById(String id) async {
-    // For now, return null since exam_results table is not implemented
-    return null;
+    final stmt = _db.prepare('SELECT * FROM exam_results WHERE id = ? LIMIT 1');
+    try {
+      final rs = stmt.select([int.tryParse(id) ?? 0]);
+      if (rs.isEmpty) return null;
+      return _rowToMap(rs, rs.first);
+    } finally {
+      stmt.dispose();
+    }
   }
 
   @override
   Future<List<Map<String, dynamic>>> getExamResultsByExam(String examId) async {
-    // For now, return empty list since exam_results table is not implemented
-    return [];
+    final stmt = _db.prepare('''
+      SELECT er.*, s.first_name, s.last_name, sub.name as subject_name
+      FROM exam_results er
+      LEFT JOIN students s ON er.student_id = s.id
+      LEFT JOIN subjects sub ON er.subject_id = sub.id
+      WHERE er.exam_id = ?
+      ORDER BY s.first_name, s.last_name
+    ''');
+    try {
+      final rs = stmt.select([int.tryParse(examId) ?? 0]);
+      return rs.map((r) => _rowToMap(rs, r)).toList();
+    } finally {
+      stmt.dispose();
+    }
   }
 
   @override
   Future<List<Map<String, dynamic>>> getExamResultsByStudent(
       String studentId) async {
-    // For now, return empty list since exam_results table is not implemented
-    return [];
+    final stmt = _db.prepare('''
+      SELECT er.*, e.name as exam_name, e.exam_date, sub.name as subject_name
+      FROM exam_results er
+      LEFT JOIN exams e ON er.exam_id = e.id
+      LEFT JOIN subjects sub ON er.subject_id = sub.id
+      WHERE er.student_id = ?
+      ORDER BY e.exam_date DESC
+    ''');
+    try {
+      final rs = stmt.select([int.tryParse(studentId) ?? 0]);
+      return rs.map((r) => _rowToMap(rs, r)).toList();
+    } finally {
+      stmt.dispose();
+    }
   }
 
   @override
   Future<void> updateExamResult(
       String resultId, Map<String, dynamic> resultData) async {
-    // For now, do nothing since exam_results table is not implemented
+    final updates = <String>[];
+    final params = <dynamic>[];
+
+    if (resultData.containsKey('marks_obtained')) {
+      updates.add('marks_obtained = ?');
+      params.add(resultData['marks_obtained']);
+    }
+    if (resultData.containsKey('total_marks')) {
+      updates.add('total_marks = ?');
+      params.add(resultData['total_marks']);
+    }
+    if (resultData.containsKey('grade')) {
+      updates.add('grade = ?');
+      params.add(resultData['grade']);
+    }
+    if (resultData.containsKey('comments')) {
+      updates.add('comments = ?');
+      params.add(resultData['comments']);
+    }
+
+    if (updates.isNotEmpty) {
+      updates.add('updated_at = datetime(\'now\')');
+      final sql = 'UPDATE exam_results SET ${updates.join(', ')} WHERE id = ?';
+      params.add(int.tryParse(resultId) ?? 0);
+      final stmt = _db.prepare(sql);
+      try {
+        stmt.execute(params);
+      } finally {
+        stmt.dispose();
+      }
+    }
   }
 
   @override
   Future<void> deleteExamResult(String resultId) async {
-    // For now, do nothing since exam_results table is not implemented
+    final stmt = _db.prepare('DELETE FROM exam_results WHERE id = ?');
+    try {
+      stmt.execute([int.tryParse(resultId) ?? 0]);
+    } finally {
+      stmt.dispose();
+    }
   }
 
   // Email verification methods
@@ -978,6 +1533,59 @@ class DatabaseService extends impl.DatabaseService {
       final stmt = _db.prepare('UPDATE users SET role = ? WHERE id = ?');
       try {
         stmt.execute([updateData['role'], int.tryParse(userId) ?? userId]);
+      } finally {
+        stmt.dispose();
+      }
+    }
+  }
+
+  @override
+  Future<void> updateUserSettings(
+      String userId, Map<String, dynamic> settings) async {
+    // Normalize camelCase to snake_case
+    String toSnake(String s) => s
+        .replaceAllMapped(
+            RegExp(r'[A-Z]'), (m) => '_${m.group(0)!.toLowerCase()}')
+        .toLowerCase();
+
+    final normalizedSettings = <String, dynamic>{};
+    settings.forEach((k, v) {
+      final key = k.contains('_') ? k : toSnake(k);
+      normalizedSettings[key] = v;
+    });
+
+    // Only allow specific columns to be updated
+    final allowedColumns = {
+      'first_name',
+      'last_name',
+      'phone_number',
+      'profile_picture_url',
+      'email_verified',
+      'verification_token',
+      'verification_expires',
+      'theme_color',
+      'theme_mode',
+      'is_first_time_setup_complete'
+    };
+
+    final updates = <String>[];
+    final params = <dynamic>[];
+
+    normalizedSettings.forEach((key, value) {
+      if (allowedColumns.contains(key)) {
+        updates.add('$key = ?');
+        params.add(value);
+      }
+    });
+
+    if (updates.isNotEmpty) {
+      updates.add('updated_at = datetime(\'now\')');
+      final sql = 'UPDATE users SET ${updates.join(', ')} WHERE id = ?';
+      params.add(int.tryParse(userId) ?? userId);
+
+      final stmt = _db.prepare(sql);
+      try {
+        stmt.execute(params);
       } finally {
         stmt.dispose();
       }

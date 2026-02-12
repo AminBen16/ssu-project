@@ -181,11 +181,13 @@ class FeeService {
         // Try to get cached fee balance
         final cached = await _localDb.getCache(cacheKey);
         if (cached != null) {
-          final Map<String, dynamic> data = cached as Map<String, dynamic>;
+          final data = jsonDecode(cached) as Map<String, dynamic>;
           return FeeBalance.fromMap(data);
         }
+
         return null;
       },
+
       cacheKey: cacheKey,
     );
   }
@@ -229,7 +231,8 @@ class FeeService {
 
     return await _offlineService.callWithOfflineFallback(
       onlineCall: () async {
-        final response = await _apiClient.get('/api/schools/$schoolId/payments');
+        final response =
+            await _apiClient.get('/api/schools/$schoolId/payments');
         if (response == null) return [];
         final List<dynamic> data = response['payments'] as List<dynamic>;
         return data.map((json) => FeePayment.fromMap(json)).toList();
@@ -274,15 +277,17 @@ class FeeService {
         // Try to get cached fee summary
         final cached = await _localDb.getCache(cacheKey);
         if (cached != null) {
-          final Map<String, dynamic> data = cached as Map<String, dynamic>;
+          final data = jsonDecode(cached) as Map<String, dynamic>;
           return {
             'totalExpected': (data['totalExpected'] as num?)?.toDouble() ?? 0.0,
             'totalCollected':
                 (data['totalCollected'] as num?)?.toDouble() ?? 0.0,
           };
         }
+
         return {'totalExpected': 0.0, 'totalCollected': 0.0};
       },
+
       cacheKey: cacheKey,
     );
   }

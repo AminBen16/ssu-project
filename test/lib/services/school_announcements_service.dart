@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:test/services/api_client.dart';
 import 'package:test/services/offline_service.dart';
 import 'package:test/services/local_database_service.dart';
@@ -652,7 +654,7 @@ class SchoolAnnouncementsService {
       );
     } catch (e) {
       // Log error but don't throw - refresh failures shouldn't break the app
-      print('Error refreshing announcements and events: $e');
+      developer.log('Error refreshing announcements and events: $e');
     }
   }
 
@@ -719,3 +721,4 @@ class SchoolAnnouncementsService {
 
 // Singleton instance
 final schoolAnnouncementsService = SchoolAnnouncementsService();
+

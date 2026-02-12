@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/foundation.dart';
 import 'package:test/models/grading_models.dart';
 import 'package:test/models/student_model.dart';
@@ -88,8 +90,8 @@ class ReportCardService {
       _staffService.getHeadTeacher(schoolId),
     ]);
 
-    final classTeacher = teacherFutures[0];
-    final headTeacher = teacherFutures[1];
+    final classTeacher = teacherFutures[0]?.toUserProfile();
+    final headTeacher = teacherFutures[1]?.toUserProfile();
 
     return ReportCardDisplayData(
       reportData: reportData,
@@ -151,7 +153,7 @@ class ReportCardService {
           }
           return ReportCardData(student: student, marks: allSubjectMarks);
         } catch (e) {
-          debugPrint('Error fetching report card data: $e');
+          developer.log('Error fetching report card data: $e');
           rethrow;
         }
       },
@@ -207,3 +209,4 @@ class ReportCardService {
         .cast<Map<String, dynamic>>();
   }
 }
+

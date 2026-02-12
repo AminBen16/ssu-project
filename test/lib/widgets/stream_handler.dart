@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 
 /// A reusable widget that simplifies handling the common states of a StreamBuilder.
@@ -47,7 +49,7 @@ class StreamHandler<T> extends StatelessWidget {
         }
 
         if (snapshot.hasError) {
-          debugPrint('StreamHandler Error: ${snapshot.error}');
+          developer.log('StreamHandler Error: ${snapshot.error}');
           return errorBuilder?.call(context, snapshot.error!) ??
               Center(child: Text('An error occurred: ${snapshot.error}'));
         }
@@ -64,3 +66,4 @@ class StreamHandler<T> extends StatelessWidget {
     );
   }
 }
+

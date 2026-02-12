@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/foundation.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -28,7 +30,7 @@ class ReportCardPdfService {
       try {
         logoImage = await networkImage(school.logoUrl!);
       } catch (e) {
-        debugPrint('Could not fetch school logo for PDF: $e');
+        developer.log('Could not fetch school logo for PDF: $e');
       }
     }
 
@@ -76,7 +78,7 @@ class ReportCardPdfService {
       try {
         logoImage = await networkImage(school.logoUrl!);
       } catch (e) {
-        debugPrint('Could not fetch school logo for PDF: $e');
+        developer.log('Could not fetch school logo for PDF: $e');
       }
     }
 
@@ -85,11 +87,11 @@ class ReportCardPdfService {
 
     // Fetch all report card data in parallel for better performance.
     final displayDataFutures = students.map((student) {
-      return reportCardService.getReportCardDisplayData(
+      return reportCardService.getStudentReportCard(
         schoolId: school.id.toString(),
         studentId: student.id.toString(),
         term: term,
-        year: year,
+        year: year.toString(),
       );
     }).toList();
 
@@ -516,3 +518,4 @@ class ReportCardPdfService {
     );
   }
 }
+

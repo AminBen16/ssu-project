@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:intl/intl.dart';
@@ -112,7 +114,7 @@ class _StaffEnrollmentScreenState extends State<StaffEnrollmentScreen> {
       if (result['user'] != null) {
         final createdEmail = result['user']['email'] ?? _emailController.text.trim();
         final userExists = await _userProfileService.checkUserExists(createdEmail);
-        debugPrint('User verification check - Email: $createdEmail, Exists: $userExists');
+        developer.log('User verification check - Email: $createdEmail, Exists: $userExists');
 
         if (mounted) {
           // Show login details dialog
@@ -661,3 +663,4 @@ class _StaffEnrollmentScreenState extends State<StaffEnrollmentScreen> {
     return UserRole.allStaffRoles;
   }
 }
+

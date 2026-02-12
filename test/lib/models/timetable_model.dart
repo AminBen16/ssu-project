@@ -37,4 +37,13 @@ class ScheduledLesson {
       'room': room,
     };
   }
+
+  factory ScheduledLesson.empty() {
+    return ScheduledLesson(
+      subjectName: '',
+      teacherId: '',
+      teacherName: '',
+      room: null,
+    );
+  }
 }

@@ -5,7 +5,7 @@ import 'package:test/services/local_database_service.dart';
 import 'package:test/models/subject.dart';
 import 'package:test/models/user_profile.dart';
 import 'package:test/models/timetable_constants.dart';
-import 'package:test/models/scheduled_lesson.dart';
+import 'package:test/models/timetable_model.dart';
 
 /// Enhanced constraint model for timetable generation
 class TimetableConstraint {
@@ -38,16 +38,20 @@ class TimetableConstraint {
       minPeriodsPerWeek: map['minPeriodsPerWeek'] as int? ?? 1,
       maxPeriodsPerDay: map['maxPeriodsPerDay'] as int? ?? 6,
       unavailableTimeSlots: (map['unavailableTimeSlots'] as List<dynamic>?)
-          ?.map((e) => e.toString())
-          .toList() ?? [],
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
       preferredTimeSlots: (map['preferredTimeSlots'] as List<dynamic>?)
-          ?.map((e) => e.toString())
-          .toList() ?? [],
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
       maxConsecutivePeriods: map['maxConsecutivePeriods'] as int? ?? 3,
       preferredDays: (map['preferredDays'] as List<dynamic>?)
-          ?.map((e) => e.toString())
-          .toList() ?? [],
-      customConstraints: map['customConstraints'] as Map<String, dynamic>? ?? {},
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      customConstraints:
+          map['customConstraints'] as Map<String, dynamic>? ?? {},
     );
   }
 
@@ -111,8 +115,10 @@ class TimetableGeneratorService {
 
       final teachers = constraints['teachers'] as List<String>;
       final subjects = constraints['subjects'] as List<String>;
-      final teacherConstraints = constraints['constraints'] as Map<String, TimetableConstraint>;
-      final initialConflicts = constraints['conflicts'] as List<TimetableConflict>;
+      final teacherConstraints =
+          constraints['constraints'] as Map<String, TimetableConstraint>;
+      final initialConflicts =
+          constraints['conflicts'] as List<TimetableConflict>;
 
       // Build conflict graph
       final conflictGraphData = _buildConflictGraph(
@@ -134,8 +140,10 @@ class TimetableGeneratorService {
         requirements: requirements,
       );
 
-      final timetable = solutionData['timetable'] as Map<String, Map<String, ScheduledLesson>>;
-      final algorithmConflicts = solutionData['conflicts'] as List<TimetableConflict>;
+      final timetable = solutionData['timetable']
+          as Map<String, Map<String, ScheduledLesson>>;
+      final algorithmConflicts =
+          solutionData['conflicts'] as List<TimetableConflict>;
 
       // Validate
       final validationData = validateAndReportConflicts(
@@ -193,7 +201,9 @@ class TimetableGeneratorService {
     List<Subject> subjects = [];
 
     try {
-      teachingStaff = await staffService.getTeachingStaff(schoolId);
+      teachingStaff = (await staffService.getTeachingStaff(schoolId))
+          .map((staff) => staff.toUserProfile())
+          .toList();
       final subjectsData = await localDb.getAllData('subjects');
       subjects = subjectsData
           .map((data) => Subject.fromMap(data['data'] as Map<String, dynamic>))
@@ -223,7 +233,8 @@ class TimetableGeneratorService {
         } catch (e) {
           conflicts.add(TimetableConflict(
             type: 'constraint',
-            description: 'Failed to extract constraints for teacher ${staff.id}',
+            description:
+                'Failed to extract constraints for teacher ${staff.id}',
             details: {'error': e.toString()},
             severity: 2,
           ));
@@ -252,9 +263,10 @@ class TimetableGeneratorService {
   }
 
   /// Extract subjects assigned to a teacher
-  List<Subject> _extractTeacherSubjects(UserProfile staff, List<Subject> allSubjects) {
+  List<Subject> _extractTeacherSubjects(
+      UserProfile staff, List<Subject> allSubjects) {
     final subjects = <Subject>[];
-    
+
     if (staff.subjectCodes != null && staff.subjectCodes!.isNotEmpty) {
       for (final subjectCode in staff.subjectCodes!) {
         final subject = allSubjects.firstWhere(
@@ -272,11 +284,11 @@ class TimetableGeneratorService {
         }
       }
     }
-    
+
     if (subjects.isEmpty && allSubjects.isNotEmpty) {
       subjects.add(allSubjects.first);
     }
-    
+
     return subjects;
   }
 
@@ -288,8 +300,13 @@ class TimetableGeneratorService {
     } else if (desc.contains('practical') || desc.contains('lab')) {
       return 3;
     }
-    
-    final coreSubjects = ['Mathematics', 'English', 'Science', 'Social Studies'];
+
+    final coreSubjects = [
+      'Mathematics',
+      'English',
+      'Science',
+      'Social Studies'
+    ];
     if (coreSubjects.contains(subject.name)) return 5;
     return 2;
   }
@@ -358,9 +375,10 @@ class TimetableGeneratorService {
         for (final subject in subjects) {
           final constraint = constraints.values.firstWhere(
             (c) => c.subjectId == subject,
-            orElse: () => TimetableConstraint(teacherId: '', subjectId: '', minPeriodsPerWeek: 2),
+            orElse: () => TimetableConstraint(
+                teacherId: '', subjectId: '', minPeriodsPerWeek: 2),
           );
-          
+
           if ((subjectCounts[subject] ?? 0) < constraint.minPeriodsPerWeek) {
             subjectToAssign = subject;
             break;
@@ -378,10 +396,13 @@ class TimetableGeneratorService {
             timetable[day]![slot] = ScheduledLesson(
               subjectName: subjectToAssign,
               teacherId: teacherConstraint.teacherId,
-              teacherName: teacherConstraint.customConstraints['teacherName'] as String? ?? 'Unknown',
+              teacherName: teacherConstraint.customConstraints['teacherName']
+                      as String? ??
+                  'Unknown',
               room: 'Classroom',
             );
-            subjectCounts[subjectToAssign] = (subjectCounts[subjectToAssign] ?? 0) + 1;
+            subjectCounts[subjectToAssign] =
+                (subjectCounts[subjectToAssign] ?? 0) + 1;
           }
         }
       }
@@ -420,7 +441,7 @@ class TimetableGeneratorService {
       for (final lesson in day.values) {
         if (lesson.subjectName.isNotEmpty) {
           assignedCount++;
-          statistics['subjectDistribution'][lesson.subjectName] = 
+          statistics['subjectDistribution'][lesson.subjectName] =
               (statistics['subjectDistribution'][lesson.subjectName] ?? 0) + 1;
         }
       }

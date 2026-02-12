@@ -160,6 +160,8 @@ class Peer {
   final TransportType transportType;
   final DateTime lastSeen;
   final Map<String, dynamic> capabilities;
+  final String? ipAddress;
+  final int? port;
 
   Peer({
     required this.deviceId,
@@ -170,6 +172,8 @@ class Peer {
     this.transportType = TransportType.bluetooth,
     required this.lastSeen,
     this.capabilities = const {},
+    this.ipAddress,
+    this.port,
   });
 
   // Backward compatibility

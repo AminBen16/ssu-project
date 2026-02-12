@@ -1,9 +1,9 @@
+import 'dart:developer' as developer;
+
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart' as fbp;
 import '../models/domain_models.dart';
-
 
 enum TransportType {
   bluetooth,
@@ -58,7 +58,7 @@ class BluetoothTransportManager implements TransportManager {
       // Request permissions and enable Bluetooth
       await fbp.FlutterBluePlus.turnOn();
     } catch (e) {
-      debugPrint('Bluetooth initialization failed: $e');
+      developer.log('Bluetooth initialization failed: $e');
     }
   }
 
@@ -67,9 +67,9 @@ class BluetoothTransportManager implements TransportManager {
     if (_txCharacteristic != null && _connectedDevice != null) {
       try {
         final data = utf8.encode(payload);
-        await _txCharacteristic!.write(data);
+        await _txCharacteristic!.write(data, withoutResponse: false);
       } catch (e) {
-        debugPrint('Failed to send Bluetooth payload: $e');
+        developer.log('Failed to send Bluetooth payload: $e');
       }
     }
   }
@@ -97,7 +97,7 @@ class BluetoothTransportManager implements TransportManager {
 
   Future<void> _connectToDevice(fbp.BluetoothDevice device) async {
     try {
-      await device.connect();
+      await device.connect(license: fbp.License.free);
       _connectedDevice = device;
 
       // Discover services and characteristics
@@ -128,7 +128,7 @@ class BluetoothTransportManager implements TransportManager {
         }
       }
     } catch (e) {
-      debugPrint('Failed to connect to Bluetooth device: $e');
+      developer.log('Failed to connect to Bluetooth device: $e');
     }
   }
 
@@ -157,24 +157,24 @@ class WifiDirectTransportManager implements TransportManager {
 
   Future<void> initialize() async {
     // Stub implementation - Wi-Fi Direct not available
-    debugPrint('Wi-Fi Direct transport initialized (stub)');
+    developer.log('Wi-Fi Direct transport initialized (stub)');
   }
 
   Future<void> startAdvertising() async {
     // Stub implementation
-    debugPrint('Wi-Fi Direct advertising not available (stub)');
+    developer.log('Wi-Fi Direct advertising not available (stub)');
   }
 
   @override
   Future<void> sendPayload(String targetDeviceId, String payload) async {
     // Stub implementation
-    debugPrint('Wi-Fi Direct send not available (stub)');
+    developer.log('Wi-Fi Direct send not available (stub)');
   }
 
   @override
   Future<void> broadcastPayload(String payload) async {
     // Stub implementation
-    debugPrint('Wi-Fi Direct broadcast not available (stub)');
+    developer.log('Wi-Fi Direct broadcast not available (stub)');
   }
 
   @override
@@ -182,7 +182,6 @@ class WifiDirectTransportManager implements TransportManager {
     await _controller.close();
   }
 }
-
 
 /// Multi-Transport Manager that combines Bluetooth and Wi-Fi Direct
 /// Provides fallback and transport selection based on availability

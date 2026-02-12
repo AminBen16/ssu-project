@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
-import '../widgets/radio_group.dart';
 
 class AppearanceSettingsScreen extends StatefulWidget {
   const AppearanceSettingsScreen({super.key});
@@ -19,7 +18,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
   late double _fontSize;
 
   final List<String> _languages = ['English', 'Swahili', 'French', 'Arabic'];
-  final List<String> _fontSizes = ['0.8', '1.0', '1.2', '1.4', '1.6', '2.0'];
+
 
   @override
   void initState() {
@@ -92,27 +91,31 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                 ),
                 if (!_useSystemTheme) ...[
                   const Divider(),
-                  RadioListTile<ThemeMode>(
+                  ListTile(
                     title: const Text('Light Theme'),
-                    value: ThemeMode.light,
-                    groupValue: _selectedTheme,
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() => _selectedTheme = value);
-                        _saveSettings();
-                      }
-                    },
+                    leading: Radio<ThemeMode>(
+                      value: ThemeMode.light,
+                      groupValue: _selectedTheme,
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => _selectedTheme = value);
+                          _saveSettings();
+                        }
+                      },
+                    ),
                   ),
-                  RadioListTile<ThemeMode>(
+                  ListTile(
                     title: const Text('Dark Theme'),
-                    value: ThemeMode.dark,
-                    groupValue: _selectedTheme,
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() => _selectedTheme = value);
-                        _saveSettings();
-                      }
-                    },
+                    leading: Radio<ThemeMode>(
+                      value: ThemeMode.dark,
+                      groupValue: _selectedTheme,
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => _selectedTheme = value);
+                          _saveSettings();
+                        }
+                      },
+                    ),
                   ),
                 ],
               ],

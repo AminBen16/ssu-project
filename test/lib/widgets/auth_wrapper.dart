@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test/providers/user_data_provider.dart';
@@ -45,26 +47,27 @@ class AuthWrapper extends StatelessWidget {
               );
             }
 
-            debugPrint('AuthWrapper - userProfile.role: ${userProfile.role}');
-            debugPrint('AuthWrapper - userProfile.isFirstTimeSetupComplete: ${userProfile.isFirstTimeSetupComplete}');
-            debugPrint('AuthWrapper - is chief admin: ${userProfile.role == UserRole.chiefAdmin}');
-            debugPrint('AuthWrapper - is school admin: ${userProfile.role == UserRole.schoolAdmin}');
-            debugPrint('AuthWrapper - is teacher: ${userProfile.role == UserRole.teacher || userProfile.role == UserRole.classTeacher}');
-            debugPrint('AuthWrapper - should show setup: ${userProfile.role == UserRole.chiefAdmin && !userProfile.isFirstTimeSetupComplete}');
+            developer.log('AuthWrapper - userProfile.role: ${userProfile.role}');
+            developer.log('AuthWrapper - userProfile.isFirstTimeSetupComplete: ${userProfile.isFirstTimeSetupComplete}');
+            developer.log('AuthWrapper - is chief admin: ${userProfile.role == UserRole.chiefAdmin}');
+            developer.log('AuthWrapper - is school admin: ${userProfile.role == UserRole.schoolAdmin}');
+            developer.log('AuthWrapper - is teacher: ${userProfile.role == UserRole.teacher || userProfile.role == UserRole.classTeacher}');
+            developer.log('AuthWrapper - should show setup: ${userProfile.role == UserRole.chiefAdmin && !userProfile.isFirstTimeSetupComplete}');
 
             // Check if admin has completed the initial setup.
             // Only redirect to setup if we're certain the profile is fully loaded
             if (userProfile.role == UserRole.chiefAdmin &&
                 userProfile.isFirstTimeSetupComplete == false) {
-              debugPrint('AuthWrapper - showing AdminSetupScreen');
+              developer.log('AuthWrapper - showing AdminSetupScreen');
               return const AdminSetupScreen();
             }
 
             // The user is fully authenticated and set up, route to the correct dashboard.
-            debugPrint('AuthWrapper - showing DashboardScreen');
+            developer.log('AuthWrapper - showing DashboardScreen');
             return const DashboardScreen();
         }
       },
     );
   }
 }
+

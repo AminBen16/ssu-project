@@ -1,6 +1,7 @@
+import 'dart:developer' as developer;
+
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:flutter/material.dart';
 import 'package:test/services/gemini_service.dart';
 import 'package:test/models/ai_assistant_intent.dart';
 
@@ -75,7 +76,7 @@ Example: "Open marks entry for Senior 1" -> {"intent": "navigate", "entities": {
           return UnknownIntent();
       }
     } catch (e) {
-      debugPrint('Error parsing AI response: $e');
+      developer.log('Error parsing AI response: $e');
       return UnknownIntent(message: 'I had trouble understanding that.');
     }
   }
@@ -97,7 +98,7 @@ Provide the answer as plain text.
       return SolveImageIntent(
           solutionText: response ?? 'I could not find a solution.');
     } catch (e) {
-      debugPrint('Error parsing image command: $e');
+      developer.log('Error parsing image command: $e');
       return UnknownIntent(message: 'I had trouble analyzing the image.');
     }
   }

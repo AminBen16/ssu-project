@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -71,14 +73,14 @@ class UserDataProvider with ChangeNotifier {
 
       if (token != null && token.isNotEmpty) {
         try {
-          debugPrint(
+          developer.log(
               'Checking token expiration: ${token.substring(0, min(50, token.length))}...');
           // Only decode to check expiration, don't verify signature on client
           final decoded = JWT.decode(token);
           final String? userId =
               decoded.subject; // 'sub' is standard for user ID
-          debugPrint('Decoded token subject: $userId');
-          debugPrint(
+          developer.log('Decoded token subject: $userId');
+          developer.log(
               'Decoded token payload keys: ${decoded.payload.keys.toList()}');
 
           // Check if token is expired
@@ -86,7 +88,7 @@ class UserDataProvider with ChangeNotifier {
           if (exp != null) {
             final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
             if (now >= exp) {
-              debugPrint('Token has expired');
+              developer.log('Token has expired');
               // PATCH: Guard refresh attempt to prevent orphan state
               try {
                 await refreshUserProfile();
@@ -95,7 +97,7 @@ class UserDataProvider with ChangeNotifier {
                   throw Exception('Token refresh failed - invalid session');
                 }
               } catch (e) {
-                debugPrint('Token refresh failed: $e');
+                developer.log('Token refresh failed: $e');
                 // Force logout on refresh failure
                 await logout();
                 return;
@@ -127,23 +129,23 @@ class UserDataProvider with ChangeNotifier {
             await _loadUserProfile(userIdToUse);
             return;
           } else {
-            debugPrint(
+            developer.log(
                 'Token subject and alternative claims are null, invalid token');
             await _secureStorage.delete(
                 key: _jwtTokenKey); // Clear invalid token
           }
         } on FormatException catch (e) {
-          debugPrint('Invalid JWT format: $e');
+          developer.log('Invalid JWT format: $e');
           await _secureStorage.delete(key: _jwtTokenKey); // Clear invalid token
         } catch (e) {
-          debugPrint('Error decoding token: $e');
+          developer.log('Error decoding token: $e');
           await _secureStorage.delete(key: _jwtTokenKey); // Clear invalid token
         }
       }
       // If no token, it's expired, or there's an error, the user is unauthenticated.
       _updateStatus(UserDataStatus.unauthenticated);
     } catch (e) {
-      debugPrint('Error initializing user data: $e');
+      developer.log('Error initializing user data: $e');
       _updateStatus(UserDataStatus.unauthenticated);
     }
   }
@@ -156,14 +158,14 @@ class UserDataProvider with ChangeNotifier {
         _userProfile = profile;
         if (profile.schoolId != null && profile.schoolId!.isNotEmpty) {
           try {
-            debugPrint('Loading school data for schoolId: ${profile.schoolId}');
+            developer.log('Loading school data for schoolId: ${profile.schoolId}');
             _school = await _schoolService.getSchool(profile.schoolId!);
-            debugPrint('School data loaded: ${_school?.name}');
+            developer.log('School data loaded: ${_school?.name}');
           } catch (e) {
-            debugPrint('Failed to load school data: $e');
+            developer.log('Failed to load school data: $e');
           }
         } else {
-          debugPrint('No schoolId found in user profile');
+          developer.log('No schoolId found in user profile');
         }
         
         // PATCH: Only set authenticated status after all data is loaded
@@ -178,7 +180,7 @@ class UserDataProvider with ChangeNotifier {
               schoolId: profile.schoolId!,
             );
           } catch (e) {
-            debugPrint('Bulk sync failed during initialization: $e');
+            developer.log('Bulk sync failed during initialization: $e');
             // Don't fail initialization if sync fails
           }
         }
@@ -188,7 +190,7 @@ class UserDataProvider with ChangeNotifier {
         await logout();
       }
     } catch (e) {
-      debugPrint('Failed to load user profile: $e');
+      developer.log('Failed to load user profile: $e');
       // An error occurred, treat as unauthenticated.
       await logout();
     }
@@ -203,7 +205,7 @@ class UserDataProvider with ChangeNotifier {
       try {
         final refreshToken = await _secureStorage.read(key: _refreshTokenKey);
         if (refreshToken == null) {
-          debugPrint('No refresh token available');
+          developer.log('No refresh token available');
           _updateStatus(UserDataStatus.unauthenticated);
         } else {
           final response = await _apiClient.post(
@@ -224,12 +226,12 @@ class UserDataProvider with ChangeNotifier {
                 return;
               }
             } catch (e) {
-              debugPrint('Error decoding new token: $e');
+              developer.log('Error decoding new token: $e');
             }
           }
         }
       } catch (e) {
-        debugPrint('Token refresh failed: $e');
+        developer.log('Token refresh failed: $e');
         // Clear both tokens on refresh failure
         await _secureStorage.delete(key: _jwtTokenKey);
         await _secureStorage.delete(key: _refreshTokenKey);
@@ -245,13 +247,13 @@ class UserDataProvider with ChangeNotifier {
         _userProfile!.schoolId != null &&
         _userProfile!.schoolId!.isNotEmpty) {
       try {
-        debugPrint(
+        developer.log(
             'Refreshing school data for schoolId: ${_userProfile!.schoolId}');
         _school = await _schoolService.getSchool(_userProfile!.schoolId!);
-        debugPrint('School data refreshed: ${_school?.name}');
+        developer.log('School data refreshed: ${_school?.name}');
         notifyListeners();
       } catch (e) {
-        debugPrint('Failed to refresh school data: $e');
+        developer.log('Failed to refresh school data: $e');
       }
     }
   }
@@ -280,7 +282,7 @@ class UserDataProvider with ChangeNotifier {
       await _databaseService.delete(itemId, itemType);
       notifyListeners();
     } catch (e) {
-      debugPrint('Error deleting item: $e');
+      developer.log('Error deleting item: $e');
       // Optionally, re-throw the exception to be handled by the UI
       throw Exception('Failed to delete item');
     }
@@ -294,7 +296,7 @@ class UserDataProvider with ChangeNotifier {
         _school = school;
         notifyListeners();
       } catch (e) {
-        debugPrint('Error refreshing school data: $e');
+        developer.log('Error refreshing school data: $e');
       }
     }
   }
@@ -348,10 +350,10 @@ class UserDataProvider with ChangeNotifier {
         localizedReason: 'Please authenticate to access SSU Dashboard',
       );
     } on PlatformException catch (e) {
-      debugPrint('Biometric auth error: $e');
+      developer.log('Biometric auth error: $e');
       return false;
     } catch (e) {
-      debugPrint('Biometric auth error: $e');
+      developer.log('Biometric auth error: $e');
       return false;
     }
   }
@@ -367,3 +369,4 @@ class UserDataProvider with ChangeNotifier {
     }
   }
 }
+

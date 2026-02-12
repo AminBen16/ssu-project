@@ -1,5 +1,6 @@
+import 'dart:developer' as developer;
+
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:test/models/scheme_of_work_model.dart';
 import 'package:test/services/gemini_service.dart';
 
@@ -52,8 +53,8 @@ class AISchemeGeneratorService {
         return schemeEntry;
       }).toList();
     } catch (e) {
-      debugPrint('Error parsing AI scheme of work response: $e');
-      debugPrint('Raw AI Response:\n$response');
+      developer.log('Error parsing AI scheme of work response: $e');
+      developer.log('Raw AI Response:\n$response');
       throw Exception(
           'Failed to parse the generated scheme. The AI returned an invalid format.');
     }

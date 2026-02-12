@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:test/constants.dart';
 import 'package:test/widgets/loading_button.dart';
@@ -60,7 +62,7 @@ class _CreateSchoolScreenState extends State<CreateSchoolScreen> {
         Navigator.of(context).pop();
       }
     } catch (e) {
-      debugPrint('API Error: $e');
+      developer.log('API Error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to create school: ${e.toString()}')),
@@ -157,3 +159,4 @@ class _CreateSchoolScreenState extends State<CreateSchoolScreen> {
     );
   }
 }
+

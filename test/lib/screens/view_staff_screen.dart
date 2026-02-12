@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -55,11 +57,11 @@ class _ViewStaffScreenState extends State<ViewStaffScreen> {
                  email.contains(query) || 
                  role.contains(query);
           
-          final matchesSubject = _selectedSubject == null || 
-              true; // TODO: Implement subjects property in UserProfile
-          
-          final matchesStatus = _selectedStatus == null || 
-              true; // TODO: Implement employmentStatus property in UserProfile
+          final matchesSubject = _selectedSubject == null ||
+              (staff.subjectCodes?.contains(_selectedSubject) ?? false);
+
+          final matchesStatus = _selectedStatus == null ||
+              staff.employmentStatus == _selectedStatus;
           
           final matchesRole = _selectedRole == null || 
               staff.role.name.toLowerCase() == _selectedRole!.toLowerCase();
@@ -81,7 +83,7 @@ class _ViewStaffScreenState extends State<ViewStaffScreen> {
         throw Exception('School ID not available');
       }
 
-      debugPrint('Loading staff for school ID: $schoolId');
+      developer.log('Loading staff for school ID: $schoolId');
       
       // Use UserProfileService.getAllUsers which works with the real endpoint
       final (staff, totalCount) = await _userProfileService.getAllUsers(
@@ -89,7 +91,7 @@ class _ViewStaffScreenState extends State<ViewStaffScreen> {
         limit: 100, // Get more staff at once
       );
       
-      debugPrint('Loaded ${staff.length} staff members');
+      developer.log('Loaded ${staff.length} staff members');
       
       // Filter only staff roles (exclude students, parents, etc.)
       final staffOnly = staff.where((user) => 
@@ -103,7 +105,7 @@ class _ViewStaffScreenState extends State<ViewStaffScreen> {
       });
       
     } catch (e) {
-      debugPrint('Error loading staff: $e');
+      developer.log('Error loading staff: $e');
       setState(() {
         _allStaff = [];
         _filteredStaff = [];
@@ -443,3 +445,4 @@ class _ViewStaffScreenState extends State<ViewStaffScreen> {
     }
   }
 }
+

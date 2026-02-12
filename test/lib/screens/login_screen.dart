@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -56,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      debugPrint(
+      developer.log(
           'LoginScreen: Starting authentication for ${_emailController.text.trim()}');
 
       // Simple authentication - just email/password, backend determines role
@@ -66,9 +68,9 @@ class _LoginScreenState extends State<LoginScreen> {
         context: context,
       );
 
-      debugPrint('LoginScreen: Authentication completed successfully');
+      developer.log('LoginScreen: Authentication completed successfully');
     } catch (e) {
-      debugPrint('LoginScreen: Authentication failed: $e');
+      developer.log('LoginScreen: Authentication failed: $e');
 
       // Check if error requires email verification
       String errorMessage = e.toString();
@@ -202,3 +204,4 @@ class _LoginScreenState extends State<LoginScreen> {
 
 
 }
+

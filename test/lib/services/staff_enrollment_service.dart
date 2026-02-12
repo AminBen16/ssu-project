@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/foundation.dart';
 import 'package:test/models/user_roles.dart';
 import 'package:test/services/api_client.dart';
@@ -77,7 +79,7 @@ class StaffEnrollmentService {
           'schoolId': schoolId,
           ...payload,
         });
-        debugPrint('Staff enrollment queued for sync: $e');
+        developer.log('Staff enrollment queued for sync: $e');
         rethrow;
       }
     } else {
@@ -87,7 +89,8 @@ class StaffEnrollmentService {
         'schoolId': schoolId,
         ...payload,
       });
-      debugPrint('Staff enrollment queued for offline sync');
+      developer.log('Staff enrollment queued for offline sync');
     }
   }
 }
+

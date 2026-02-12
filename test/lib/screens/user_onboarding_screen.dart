@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 // ignore_for_file: deprecated_member_use
 
 import 'dart:typed_data';
@@ -108,7 +110,7 @@ class _UserOnboardingScreenState extends State<UserOnboardingScreen> {
         );
       }
     } catch (e) {
-      debugPrint('Error finishing user setup: $e');
+      developer.log('Error finishing user setup: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -232,3 +234,4 @@ class _UserOnboardingScreenState extends State<UserOnboardingScreen> {
     );
   }
 }
+

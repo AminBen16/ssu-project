@@ -5,7 +5,8 @@ void main() {
   late DatabaseService dbService;
 
   setUp(() async {
-    dbService = DatabaseService();
+    // Use in-memory database for tests
+    dbService = DatabaseService(dbPath: ':memory:');
     await dbService.initialize();
   });
 

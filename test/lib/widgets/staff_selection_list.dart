@@ -43,7 +43,7 @@ class _StaffSelectionListState extends State<StaffSelectionList> {
         .school!
         .id
         .toString();
-    _staffFuture = _staffService.getAllStaff(schoolId);
+    _staffFuture = _staffService.getAllStaff(schoolId).then((staffList) => staffList.map((staff) => staff.toUserProfile()).toList());
   }
 
   @override

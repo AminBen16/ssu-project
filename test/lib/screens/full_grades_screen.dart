@@ -15,7 +15,6 @@ class _FullGradesScreenState extends State<FullGradesScreen> {
   @override
   Widget build(BuildContext context) {
     final userData = Provider.of<UserDataProvider>(context, listen: false);
-    final marksService = MarksService();
 
     if (userData.userProfile?.schoolId == null) {
       return const Scaffold(

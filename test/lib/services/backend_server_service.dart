@@ -1,7 +1,8 @@
+import 'dart:developer' as developer;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
@@ -26,7 +27,7 @@ class BackendServerService {
   /// Start the backend server
   Future<bool> startServer() async {
     if (_isRunning) {
-      debugPrint('Server is already running');
+      developer.log('Server is already running');
       return true;
     }
 
@@ -37,7 +38,7 @@ class BackendServerService {
 
       // Check if server directory exists
       if (!Directory(serverDir).existsSync()) {
-        debugPrint('Server directory not found: $serverDir');
+        developer.log('Server directory not found: $serverDir');
         return false;
       }
 
@@ -45,7 +46,7 @@ class BackendServerService {
       final serverExecutable = _getServerExecutablePath(serverDir);
 
       if (serverExecutable == null) {
-        debugPrint('Server executable not found');
+        developer.log('Server executable not found');
         return false;
       }
 
@@ -65,13 +66,13 @@ class BackendServerService {
       // Listen to stdout
       _serverProcess!.stdout.transform(utf8.decoder).listen((data) {
         _logController.add('STDOUT: $data');
-        debugPrint('Server STDOUT: $data');
+        developer.log('Server STDOUT: $data');
       });
 
       // Listen to stderr
       _serverProcess!.stderr.transform(utf8.decoder).listen((data) {
         _logController.add('STDERR: $data');
-        debugPrint('Server STDERR: $data');
+        developer.log('Server STDERR: $data');
       });
 
       // Listen to process exit
@@ -79,16 +80,16 @@ class BackendServerService {
         _isRunning = false;
         _statusController.add(false);
         _logController.add('Server exited with code: $exitCode');
-        debugPrint('Server exited with code: $exitCode');
+        developer.log('Server exited with code: $exitCode');
       });
 
       // Wait a bit for server to start
       await Future.delayed(const Duration(seconds: 2));
 
-      debugPrint('Backend server started successfully');
+      developer.log('Backend server started successfully');
       return true;
     } catch (e) {
-      debugPrint('Failed to start backend server: $e');
+      developer.log('Failed to start backend server: $e');
       _isRunning = false;
       _statusController.add(false);
       return false;
@@ -117,9 +118,9 @@ class BackendServerService {
 
       _isRunning = false;
       _statusController.add(false);
-      debugPrint('Backend server stopped');
+      developer.log('Backend server stopped');
     } catch (e) {
-      debugPrint('Error stopping server: $e');
+      developer.log('Error stopping server: $e');
     }
   }
 

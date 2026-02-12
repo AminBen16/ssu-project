@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test/providers/user_data_provider.dart';
@@ -63,7 +65,7 @@ class _SchoolClassificationScreenState
         );
       }
     } catch (e) {
-      debugPrint('Error saving school classification: $e');
+      developer.log('Error saving school classification: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -151,3 +153,4 @@ class _SchoolClassificationScreenState
     );
   }
 }
+

@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -176,7 +178,7 @@ class _SchoolSettingsScreenState extends State<SchoolSettingsScreen> {
         }
       }
     } catch (e) {
-      debugPrint('Error saving school settings: $e');
+      developer.log('Error saving school settings: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to save details: ${e.toString()}')),
@@ -348,3 +350,4 @@ class _SchoolSettingsScreenState extends State<SchoolSettingsScreen> {
     );
   }
 }
+

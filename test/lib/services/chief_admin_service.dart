@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'dart:developer' as developer;
 
 import 'package:test/services/api_client.dart';
 
@@ -24,8 +24,9 @@ class ChiefAdminService {
         'classification': 'Primary', // Default classification
       });
     } catch (e) {
-      debugPrint('API Error: $e');
+      developer.log('API Error: $e');
       throw Exception('Failed to create school and admin: $e');
     }
   }
 }
+

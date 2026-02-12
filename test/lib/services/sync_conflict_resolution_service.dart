@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/foundation.dart';
 import 'package:test/services/platform_channels.dart';
 
@@ -14,7 +16,7 @@ class SyncConflictResolutionService {
     required Map<String, dynamic> serverData,
     required String entityType, // 'student', 'assignment', etc.
   }) async {
-    debugPrint('Resolving conflict for $entityType');
+    developer.log('Resolving conflict for $entityType');
     
     final conflicts = <String, dynamic>{};
     final resolutions = <String, dynamic>{};
@@ -87,3 +89,4 @@ class SyncConflictResolutionService {
     }
   }
 }
+

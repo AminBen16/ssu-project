@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:async';
@@ -18,27 +20,27 @@ class UserProfileService {
     final response = await _apiClient.get('/users/$uid');
 
     if (response != null) {
-      debugPrint('User profile response: $response');
+      developer.log('User profile response: $response');
       try {
         final userProfile =
             UserProfile.fromMap(response as Map<String, dynamic>, uid);
-        debugPrint(
+        developer.log(
             'Parsed userProfile - isFirstTimeSetupComplete: ${userProfile.isFirstTimeSetupComplete}');
-        debugPrint('Parsed userProfile - role: ${userProfile.role}');
+        developer.log('Parsed userProfile - role: ${userProfile.role}');
         return userProfile;
       } catch (e, stackTrace) {
-        debugPrint('=== DETAILED ERROR DEBUGGING ===');
-        debugPrint('Error type: ${e.runtimeType}');
-        debugPrint('Error message: $e');
-        debugPrint('Stack trace: $stackTrace');
-        debugPrint('Response data: $response');
-        debugPrint('Response type: ${response.runtimeType}');
-        debugPrint('Response keys: ${(response as Map).keys}');
+        developer.log('=== DETAILED ERROR DEBUGGING ===');
+        developer.log('Error type: ${e.runtimeType}');
+        developer.log('Error message: $e');
+        developer.log('Stack trace: $stackTrace');
+        developer.log('Response data: $response');
+        developer.log('Response type: ${response.runtimeType}');
+        developer.log('Response keys: ${(response as Map).keys}');
 
         // Try to identify which field is causing the issue
         final responseMap = response as Map<String, dynamic>;
         responseMap.forEach((key, value) {
-          debugPrint('Field "$key": $value (type: ${value.runtimeType})');
+          developer.log('Field "$key": $value (type: ${value.runtimeType})');
         });
 
         return null;
@@ -47,14 +49,13 @@ class UserProfileService {
     return null;
   }
 
-  /// Returns a stream of the user's profile, which updates in real-time.
+  /// Returns a stream of the user's profile.
   ///
-  /// NOTE: This is now a placeholder. Real-time updates from a self-hosted
-  /// backend require WebSockets. This function is kept to minimize breaking
-  /// changes in the UI, but it will only fetch the data once.
+  /// Currently implemented as a one-time fetch wrapped in a stream for compatibility.
+  /// Real-time updates would require WebSocket implementation in the backend.
   Stream<UserProfile?> streamUserProfile(String uid) {
-    // This now becomes a one-time fetch wrapped in a stream.
-    // For real-time, you would connect to a WebSocket here.
+    // One-time fetch wrapped in a stream for UI compatibility
+    // Real-time updates would require WebSocket connection here
     return Stream.fromFuture(getUser(uid));
   }
 
@@ -80,7 +81,7 @@ class UserProfileService {
     String? qualification,
   }) async {
     // Log the start of the update process
-    debugPrint('Starting updateUserSettings for user: $userId');
+    developer.log('Starting updateUserSettings for user: $userId');
 
     final settingsData = <String, dynamic>{};
 
@@ -104,7 +105,7 @@ class UserProfileService {
     if (address != null) settingsData['address'] = address;
     if (qualification != null) settingsData['qualification'] = qualification;
 
-    debugPrint('Settings Data: $settingsData');
+    developer.log('Settings Data: $settingsData');
 
     try {
       // Create multipart request using ApiClient
@@ -125,9 +126,9 @@ class UserProfileService {
             : null,
       );
 
-      debugPrint('Profile settings updated successfully');
+      developer.log('Profile settings updated successfully');
     } catch (e) {
-      debugPrint('Error updating user settings: $e');
+      developer.log('Error updating user settings: $e');
       rethrow;
     }
   }
@@ -208,29 +209,29 @@ class UserProfileService {
           'teaching_days': teachingDays.join(','),
       };
 
-      debugPrint('Sending user data: ${userData.keys.toList()}');
-      debugPrint('School ID type: ${userData['school_id'].runtimeType}');
-      debugPrint('Making API call to: /api/schools/$schoolId/users');
+      developer.log('Sending user data: ${userData.keys.toList()}');
+      developer.log('School ID type: ${userData['school_id'].runtimeType}');
+      developer.log('Making API call to: /api/schools/$schoolId/users');
 
       try {
         final response = await _apiClient
             .post('/api/schools/$schoolId/users', body: userData)
             .timeout(const Duration(seconds: 30));
 
-        debugPrint('API response received: $response');
-        debugPrint('Response type: ${response.runtimeType}');
+        developer.log('API response received: $response');
+        developer.log('Response type: ${response.runtimeType}');
 
         if (response != null) {
-          debugPrint('Staff creation successful');
-          debugPrint(
+          developer.log('Staff creation successful');
+          developer.log(
               'Response keys: ${response is Map ? response.keys.toList() : 'Not a map'}');
           return response;
         } else {
-          debugPrint('Server returned null response');
+          developer.log('Server returned null response');
           throw Exception('Server returned no response');
         }
       } on TimeoutException {
-        debugPrint('Request timed out after 30 seconds');
+        developer.log('Request timed out after 30 seconds');
         throw Exception(
             'Request timed out. Please check your connection and try again.');
       }
@@ -325,7 +326,7 @@ class UserProfileService {
       }
       return false;
     } catch (e) {
-      debugPrint('Error checking user existence: $e');
+      developer.log('Error checking user existence: $e');
       return false;
     }
   }

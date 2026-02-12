@@ -1,15 +1,10 @@
-import 'package:flutter/foundation.dart';
 import 'package:test/models/user_profile.dart';
 import 'package:test/models/student.dart';
 import 'package:test/models/assignment.dart';
 import 'package:test/models/exam.dart';
 import 'package:test/models/fee_payment.dart';
 import 'package:test/models/lesson_plan.dart';
-import 'package:test/models/marks_entry.dart';
 import 'package:test/models/scheme_of_work.dart';
-import 'package:test/models/staff.dart';
-import 'package:test/models/student_application.dart';
-import 'package:test/models/subject.dart';
 import 'package:test/models/timetable_entry.dart';
 
 /// Comprehensive data validation service for SSU system
@@ -82,7 +77,7 @@ class DataValidationService {
     if (student.studentId.trim().isEmpty) {
       errors['studentId'] = 'Student ID is required';
     }
-    if (student.schoolId == null || student.schoolId!.trim().isEmpty) {
+    if (student.schoolId?.trim().isEmpty ?? true) {
       errors['schoolId'] = 'School ID is required';
     }
 

@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
@@ -178,7 +180,7 @@ class _EditExamScreenState extends State<EditExamScreen> {
         Navigator.of(context).pop();
       }
     } catch (e) {
-      debugPrint('Error saving exam: $e');
+      developer.log('Error saving exam: $e');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -446,3 +448,4 @@ class _EditExamScreenState extends State<EditExamScreen> {
     return const SizedBox.shrink();
   }
 }
+

@@ -1,11 +1,10 @@
+import 'dart:developer' as developer;
+
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:test/services/communication/messaging_interface.dart';
-import 'package:test/services/communication/core_models.dart';
 
 /// Bluetooth LE transport implementation using flutter_blue_plus
 /// Provides real Bluetooth Low Energy communication for offline-first messaging
@@ -17,14 +16,16 @@ class BluetoothTransport implements TransportLayer {
   TransportType get type => TransportType.bluetooth;
 
   @override
-  NetworkStatus get status => _isScanning ? NetworkStatus.connecting : NetworkStatus.connected;
+  NetworkStatus get status =>
+      _isScanning ? NetworkStatus.connecting : NetworkStatus.connected;
 
   @override
   int get priority => 1; // High priority for short-range communication
 
   bool _isScanning = false;
   bool _isInitialized = false;
-  final StreamController<String> _dataStreamController = StreamController<String>.broadcast();
+  final StreamController<String> _dataStreamController =
+      StreamController<String>.broadcast();
   final Map<String, BluetoothDevice> _connectedDevices = {};
   final Map<String, BluetoothCharacteristic> _characteristics = {};
 
@@ -33,7 +34,7 @@ class BluetoothTransport implements TransportLayer {
     try {
       // Request Bluetooth permissions
       await _requestPermissions();
-      
+
       // Check if Bluetooth is available
       if (!await FlutterBluePlus.isSupported) {
         throw Exception('Bluetooth is not supported on this device');
@@ -43,16 +44,16 @@ class BluetoothTransport implements TransportLayer {
       FlutterBluePlus.adapterState.listen((state) {
         if (state == BluetoothAdapterState.on) {
           _isInitialized = true;
-          debugPrint('Bluetooth adapter is ON');
+          developer.log('Bluetooth adapter is ON');
         } else {
           _isInitialized = false;
-          debugPrint('Bluetooth adapter is OFF');
+          developer.log('Bluetooth adapter is OFF');
         }
       });
 
-      debugPrint('Bluetooth transport initialized');
+      developer.log('Bluetooth transport initialized');
     } catch (e) {
-      debugPrint('Failed to initialize Bluetooth transport: $e');
+      developer.log('Failed to initialize Bluetooth transport: $e');
       rethrow;
     }
   }
@@ -72,14 +73,15 @@ class BluetoothTransport implements TransportLayer {
       FlutterBluePlus.scanResults.listen((results) {
         for (ScanResult result in results) {
           if (result.device.name.isNotEmpty) {
-            debugPrint('Found Bluetooth device: ${result.device.name} (${result.device.remoteId.str})');
+            developer.log(
+                'Found Bluetooth device: ${result.device.name} (${result.device.remoteId.str})');
           }
         }
       });
 
-      debugPrint('Bluetooth scanning started');
+      developer.log('Bluetooth scanning started');
     } catch (e) {
-      debugPrint('Failed to start Bluetooth scanning: $e');
+      developer.log('Failed to start Bluetooth scanning: $e');
       rethrow;
     }
   }
@@ -97,9 +99,9 @@ class BluetoothTransport implements TransportLayer {
       _connectedDevices.clear();
       _characteristics.clear();
 
-      debugPrint('Bluetooth transport stopped');
+      developer.log('Bluetooth transport stopped');
     } catch (e) {
-      debugPrint('Failed to stop Bluetooth transport: $e');
+      developer.log('Failed to stop Bluetooth transport: $e');
     }
   }
 
@@ -108,13 +110,13 @@ class BluetoothTransport implements TransportLayer {
     try {
       final device = _connectedDevices[targetDeviceId];
       if (device == null) {
-        debugPrint('Device $targetDeviceId not connected');
+        developer.log('Device $targetDeviceId not connected');
         return false;
       }
 
       final characteristic = _characteristics[targetDeviceId];
       if (characteristic == null) {
-        debugPrint('No characteristic found for device $targetDeviceId');
+        developer.log('No characteristic found for device $targetDeviceId');
         return false;
       }
 
@@ -122,10 +124,10 @@ class BluetoothTransport implements TransportLayer {
       final bytes = utf8.encode(data);
       await characteristic.write(bytes);
 
-      debugPrint('Sent data via Bluetooth to $targetDeviceId: $data');
+      developer.log('Sent data via Bluetooth to $targetDeviceId: $data');
       return true;
     } catch (e) {
-      debugPrint('Failed to send Bluetooth data: $e');
+      developer.log('Failed to send Bluetooth data: $e');
       return false;
     }
   }
@@ -136,10 +138,10 @@ class BluetoothTransport implements TransportLayer {
   @override
   Future<bool> isAvailable() async {
     try {
-      return await FlutterBluePlus.isSupported && 
-             await FlutterBluePlus.adapterState.first == BluetoothAdapterState.on;
+      return await FlutterBluePlus.isSupported &&
+          await FlutterBluePlus.adapterState.first == BluetoothAdapterState.on;
     } catch (e) {
-      debugPrint('Error checking Bluetooth availability: $e');
+      developer.log('Error checking Bluetooth availability: $e');
       return false;
     }
   }
@@ -155,19 +157,19 @@ class BluetoothTransport implements TransportLayer {
       );
 
       final device = scanResult.device;
-      
+
       // Connect to device
-      await device.connect(license: null); // Add required license parameter
+      await device.connect(license: License.free);
 
       // Discover services and characteristics
       final services = await device.discoverServices();
       for (final service in services) {
         for (final characteristic in service.characteristics) {
           // Look for writable characteristic with UUID for messaging
-          if (characteristic.properties.write && 
+          if (characteristic.properties.write &&
               characteristic.uuid.toString().contains('ffe1')) {
             _characteristics[deviceId] = characteristic;
-            
+
             // Subscribe to notifications if available
             if (characteristic.properties.notify) {
               await characteristic.setNotifyValue(true);
@@ -175,7 +177,7 @@ class BluetoothTransport implements TransportLayer {
                 if (value != null && value.isNotEmpty) {
                   final receivedData = utf8.decode(value);
                   _dataStreamController.add(receivedData);
-                  debugPrint('Received Bluetooth data: $receivedData');
+                  developer.log('Received Bluetooth data: $receivedData');
                 }
               });
             }
@@ -185,10 +187,10 @@ class BluetoothTransport implements TransportLayer {
       }
 
       _connectedDevices[deviceId] = device;
-      debugPrint('Connected to Bluetooth device: $deviceId');
+      developer.log('Connected to Bluetooth device: $deviceId');
       return true;
     } catch (e) {
-      debugPrint('Failed to connect to Bluetooth device $deviceId: $e');
+      developer.log('Failed to connect to Bluetooth device $deviceId: $e');
       return false;
     }
   }
@@ -201,10 +203,10 @@ class BluetoothTransport implements TransportLayer {
         await device.disconnect();
         _connectedDevices.remove(deviceId);
         _characteristics.remove(deviceId);
-        debugPrint('Disconnected from Bluetooth device: $deviceId');
+        developer.log('Disconnected from Bluetooth device: $deviceId');
       }
     } catch (e) {
-      debugPrint('Failed to disconnect from Bluetooth device $deviceId: $e');
+      developer.log('Failed to disconnect from Bluetooth device $deviceId: $e');
     }
   }
 
@@ -214,7 +216,7 @@ class BluetoothTransport implements TransportLayer {
       final scanResults = await FlutterBluePlus.scanResults.first;
       return scanResults.map((result) => result.device).toList();
     } catch (e) {
-      debugPrint('Failed to get discovered devices: $e');
+      developer.log('Failed to get discovered devices: $e');
       return [];
     }
   }
@@ -229,10 +231,10 @@ class BluetoothTransport implements TransportLayer {
     ];
 
     final statuses = await permissions.request();
-    
+
     for (final permission in permissions) {
       if (statuses[permission] != PermissionStatus.granted) {
-        debugPrint('Permission ${permission.toString()} not granted');
+        developer.log('Permission ${permission.toString()} not granted');
       }
     }
   }

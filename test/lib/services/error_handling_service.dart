@@ -1,12 +1,11 @@
-import 'package:flutter/foundation.dart';
-import 'package:test/services/platform_channels.dart';
+import 'dart:developer' as developer;
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 /// Centralized error handling service for SSU system
 /// Provides consistent error reporting and user feedback
 class ErrorHandlingService {
-  final MeshPlatformChannels _meshChannels;
-
-  ErrorHandlingService(this._meshChannels);
+  ErrorHandlingService();
 
   /// Handles API errors with user-friendly messages
   static String getErrorMessage(String errorCode,
@@ -49,12 +48,12 @@ class ErrorHandlingService {
   /// Logs error for debugging
   static void logError(String error,
       {String? stackTrace, Map<String, dynamic>? context = const {}}) {
-    debugPrint('ERROR: $error');
+    developer.log('ERROR: $error');
     if (context != null && context.isNotEmpty) {
-      debugPrint('Context: $context');
+      developer.log('Context: $context');
     }
     if (stackTrace != null) {
-      debugPrint('Stack trace: $stackTrace');
+      developer.log('Stack trace: $stackTrace');
     }
   }
 
@@ -94,13 +93,12 @@ class ErrorHandlingService {
   /// Validates network connectivity before API calls
   static Future<bool> checkConnectivity() async {
     try {
-      // TODO: Integrate with connectivity_plus package for real connectivity checking
-      // For now, simulate connectivity check - this should be replaced with actual implementation
-      // Example: final result = await Connectivity().checkConnectivity();
-      // return result != ConnectivityResult.none;
-
-      // Simulate failure to indicate this needs real implementation
-      return false;
+      final connectivityResult = await Connectivity().checkConnectivity();
+      // Check if any connectivity result indicates no connection
+      if (connectivityResult is List<ConnectivityResult>) {
+        return !connectivityResult.contains(ConnectivityResult.none);
+      }
+      return connectivityResult != ConnectivityResult.none;
     } catch (e) {
       logError('Connectivity check failed: $e');
       return false; // Return false on error instead of suppressing

@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:test/providers/user_data_provider.dart';
 import 'package:test/services/staff_service.dart';
 import 'package:test/models/user_roles.dart';
-import 'package:test/models/user_profile.dart';
+
+import 'package:test/models/staff.dart';
 import 'package:test/screens/staff_detail_screen.dart';
 
 class StaffCategoryScreen extends StatefulWidget {
@@ -25,7 +26,7 @@ class StaffCategoryScreen extends StatefulWidget {
 }
 
 class _StaffCategoryScreenState extends State<StaffCategoryScreen> {
-  late Future<List<UserProfile>> _staffFuture;
+  late Future<List<Staff>> _staffFuture;
   final _staffService = StaffService();
 
   @override
@@ -35,14 +36,18 @@ class _StaffCategoryScreenState extends State<StaffCategoryScreen> {
   }
 
   void _loadStaff() {
-    final schoolId = Provider.of<UserDataProvider>(context, listen: false).school?.id;
+    final schoolId =
+        Provider.of<UserDataProvider>(context, listen: false).school?.id;
     if (schoolId != null) {
       _staffFuture = _staffService.getAllStaff(schoolId.toString());
     }
   }
 
-  List<UserProfile> _filterStaffByCategory(List<UserProfile> allStaff) {
-    return allStaff.where((staff) => widget.roles.contains(staff.role)).toList();
+  List<Staff> _filterStaffByCategory(List<Staff> allStaff) {
+    return allStaff
+        .where(
+            (staff) => staff.role != null && widget.roles.contains(staff.role!))
+        .toList();
   }
 
   @override
@@ -58,7 +63,7 @@ class _StaffCategoryScreenState extends State<StaffCategoryScreen> {
         ),
         backgroundColor: widget.color.withAlpha(26),
       ),
-      body: FutureBuilder<List<UserProfile>>(
+      body: FutureBuilder<List<Staff>>(
         future: _staffFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -177,22 +182,29 @@ class _StaffCategoryScreenState extends State<StaffCategoryScreen> {
                         children: [
                           Text(
                             widget.title,
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: widget.color,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: widget.color,
+                                ),
                           ),
                           Text(
                             '${categoryStaff.length} member${categoryStaff.length != 1 ? 's' : ''}',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: widget.color.withAlpha(204),
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: widget.color.withAlpha(204),
+                                ),
                           ),
                         ],
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
                         color: widget.color,
                         borderRadius: BorderRadius.circular(20),
@@ -209,7 +221,7 @@ class _StaffCategoryScreenState extends State<StaffCategoryScreen> {
                   ],
                 ),
               ),
-              
+
               // Staff list
               Expanded(
                 child: ListView.builder(
@@ -222,25 +234,10 @@ class _StaffCategoryScreenState extends State<StaffCategoryScreen> {
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundColor: widget.color.withAlpha(51),
-                          child: staff.profilePictureUrl != null
-                              ? ClipOval(
-                                  child: Image.network(
-                                    staff.profilePictureUrl!,
-                                    width: 40,
-                                    height: 40,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Icon(
-                                        Icons.person,
-                                        color: widget.color,
-                                      );
-                                    },
-                                  ),
-                                )
-                              : Icon(
-                                  Icons.person,
-                                  color: widget.color,
-                                ),
+                          child: Icon(
+                            Icons.person,
+                            color: widget.color,
+                          ),
                         ),
                         title: Text(
                           '${staff.firstName} ${staff.lastName}',
@@ -249,23 +246,27 @@ class _StaffCategoryScreenState extends State<StaffCategoryScreen> {
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(staff.role.displayName),
+                            Text(staff.role?.displayName ?? 'Unknown Role'),
                             if (staff.email.isNotEmpty)
                               Text(
                                 staff.email,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Colors.blue[600],
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: Colors.blue[600],
+                                    ),
                               ),
-                            if (staff.phoneNumber?.isNotEmpty == true)
-                              Text(staff.phoneNumber!),
+                            if (staff.phoneNumber.isNotEmpty)
+                              Text(staff.phoneNumber),
                           ],
                         ),
                         trailing: const Icon(Icons.arrow_forward_ios),
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => StaffDetailScreen(staffProfile: staff),
+                              builder: (_) => StaffDetailScreen(
+                                  staffProfile: staff.toUserProfile()),
                             ),
                           );
                         },

@@ -28,6 +28,7 @@ class UserProfile {
   final double? salary;
   final double? allowances;
   final String? plan;
+  final String? employmentStatus;
 
   UserProfile({
     required this.id,
@@ -57,11 +58,14 @@ class UserProfile {
     this.salary,
     this.allowances,
     this.plan,
+    this.employmentStatus,
   })  : assert(id.isNotEmpty, 'id cannot be empty'),
         assert(uid.isNotEmpty, 'uid cannot be empty'),
         assert(email.isNotEmpty, 'email cannot be empty');
 
   String get fullName => '${firstName ?? ''} ${lastName ?? ''}'.trim();
+
+  List<String> get subjects => subjectCodes ?? [];
 
   factory UserProfile.fromMap(Map<String, dynamic> data, String documentId) {
     return UserProfile(
@@ -105,6 +109,7 @@ class UserProfile {
       salary: (data['salary'] as num?)?.toDouble(),
       allowances: (data['allowances'] as num?)?.toDouble(),
       plan: data['plan']?.toString() ?? '',
+      employmentStatus: data['employment_status']?.toString() ?? '',
     );
   }
 
@@ -136,6 +141,7 @@ class UserProfile {
       'salary': salary,
       'allowances': allowances,
       'plan': plan,
+      'employment_status': employmentStatus,
     };
   }
 
@@ -167,6 +173,7 @@ class UserProfile {
     double? salary,
     double? allowances,
     String? plan,
+    String? employmentStatus,
   }) {
     return UserProfile(
       id: id ?? this.id,
@@ -196,6 +203,7 @@ class UserProfile {
       salary: salary ?? this.salary,
       allowances: allowances ?? this.allowances,
       plan: plan ?? this.plan,
+      employmentStatus: employmentStatus ?? this.employmentStatus,
     );
   }
 }

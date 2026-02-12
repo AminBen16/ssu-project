@@ -1,8 +1,6 @@
+import 'dart:developer' as developer;
+
 import 'dart:async';
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
-import 'package:test/services/communication/messaging_interface.dart';
-import 'package:test/services/communication/core_models.dart';
 import 'package:test/services/communication/transport_manager.dart';
 import 'package:test/models/emergency_types.dart';
 
@@ -19,7 +17,8 @@ class EmergencyService {
   final Map<String, int> _messageRetries = {};
   Timer? _emergencyBroadcastTimer;
 
-  EmergencyService(RealTransportManager transportManager) : _transportManager = transportManager;
+  EmergencyService(RealTransportManager transportManager)
+      : _transportManager = transportManager;
 
   /// Stream of emergency alerts
   Stream<EmergencyAlert> get emergencyAlerts => _emergencyController.stream;
@@ -33,7 +32,7 @@ class EmergencyService {
     List<String>? targetRecipients,
   }) async {
     try {
-      debugPrint('🚨 SENDING EMERGENCY MESSAGE: $message');
+      developer.log('🚨 SENDING EMERGENCY MESSAGE: $message');
 
       final emergencyMessage = EmergencyMessage(
         id: 'EMERG_${DateTime.now().millisecondsSinceEpoch}',
@@ -62,7 +61,7 @@ class EmergencyService {
       final overallSuccess = successCount > 0;
 
       if (overallSuccess) {
-        debugPrint(
+        developer.log(
             '✅ Emergency message sent via $successCount/${results.length} transports');
 
         // Broadcast emergency alert to UI
@@ -76,14 +75,14 @@ class EmergencyService {
           transportsUsed: successCount,
         ));
       } else {
-        debugPrint('❌ Emergency message failed on all transports');
+        developer.log('❌ Emergency message failed on all transports');
         // Schedule retry
         _scheduleEmergencyRetry(emergencyMessage);
       }
 
       return overallSuccess;
     } catch (e) {
-      debugPrint('❌ Emergency message failed: $e');
+      developer.log('❌ Emergency message failed: $e');
       return false;
     }
   }
@@ -103,10 +102,10 @@ class EmergencyService {
         'broadcast',
       );
 
-      debugPrint('📡 Emergency sent via Bluetooth: $success');
+      developer.log('📡 Emergency sent via Bluetooth: $success');
       return success;
     } catch (e) {
-      debugPrint('❌ Bluetooth emergency failed: $e');
+      developer.log('❌ Bluetooth emergency failed: $e');
       return false;
     }
   }
@@ -125,10 +124,10 @@ class EmergencyService {
         'broadcast',
       );
 
-      debugPrint('📶 Emergency sent via Wi-Fi Direct: $success');
+      developer.log('📶 Emergency sent via Wi-Fi Direct: $success');
       return success;
     } catch (e) {
-      debugPrint('❌ Wi-Fi Direct emergency failed: $e');
+      developer.log('❌ Wi-Fi Direct emergency failed: $e');
       return false;
     }
   }
@@ -138,7 +137,7 @@ class EmergencyService {
     try {
       final loraTransport = _transportManager.getTransport('lora');
       if (loraTransport == null || !await loraTransport.isAvailable()) {
-        debugPrint('📡 LoRa not available for emergency');
+        developer.log('📡 LoRa not available for emergency');
         return false;
       }
 
@@ -148,10 +147,10 @@ class EmergencyService {
         'broadcast',
       );
 
-      debugPrint('📡 Emergency sent via LoRa: $success');
+      developer.log('📡 Emergency sent via LoRa: $success');
       return success;
     } catch (e) {
-      debugPrint('❌ LoRa emergency failed: $e');
+      developer.log('❌ LoRa emergency failed: $e');
       return false;
     }
   }
@@ -162,7 +161,7 @@ class EmergencyService {
       final satelliteTransport = _transportManager.getTransport('satellite');
       if (satelliteTransport == null ||
           !await satelliteTransport.isAvailable()) {
-        debugPrint('🛰️ Satellite not available for emergency');
+        developer.log('🛰️ Satellite not available for emergency');
         return false;
       }
 
@@ -172,10 +171,10 @@ class EmergencyService {
         'broadcast',
       );
 
-      debugPrint('🛰️ Emergency sent via Satellite: $success');
+      developer.log('🛰️ Emergency sent via Satellite: $success');
       return success;
     } catch (e) {
-      debugPrint('❌ Satellite emergency failed: $e');
+      developer.log('❌ Satellite emergency failed: $e');
       return false;
     }
   }
@@ -187,7 +186,7 @@ class EmergencyService {
         Timer.periodic(Duration(seconds: 30), (timer) async {
       if (_emergencyQueue.isEmpty) return;
 
-      debugPrint(
+      developer.log(
           '🔄 Processing emergency queue: ${_emergencyQueue.length} messages');
 
       // Process emergency queue with multi-hop logic
@@ -209,11 +208,12 @@ class EmergencyService {
 
       if (hopCount >= 5) {
         // Maximum hop limit
-        debugPrint('🚫 Message ${message.id} reached maximum hop count');
+        developer.log('🚫 Message ${message.id} reached maximum hop count');
         return;
       }
 
-      debugPrint('🔄 Propagating message ${message.id} - Hop ${hopCount + 1}');
+      developer
+          .log('🔄 Propagating message ${message.id} - Hop ${hopCount + 1}');
 
       // Forward message via all available transports
       await Future.wait([
@@ -225,7 +225,7 @@ class EmergencyService {
 
       _messageRetries[message.id] = hopCount + 1;
     } catch (e) {
-      debugPrint('❌ Mesh propagation failed: $e');
+      developer.log('❌ Mesh propagation failed: $e');
     }
   }
 
@@ -235,12 +235,12 @@ class EmergencyService {
 
     if (retryCount >= 5) {
       // Maximum retry limit
-      debugPrint(
+      developer.log(
           '❌ Emergency message ${message.id} failed after maximum retries');
       return;
     }
 
-    debugPrint(
+    developer.log(
         '🔄 Scheduling emergency retry ${retryCount + 1}/5 for message ${message.id}');
 
     Timer(Duration(seconds: 10 * (retryCount + 1)), () async {
@@ -280,13 +280,13 @@ class EmergencyService {
 
   /// Start emergency monitoring service
   Future<void> startEmergencyMonitoring() async {
-    debugPrint('🚨 Starting emergency communication monitoring');
+    developer.log('🚨 Starting emergency communication monitoring');
     await _startMeshBroadcasting();
   }
 
   /// Stop emergency monitoring service
   Future<void> stopEmergencyMonitoring() async {
-    debugPrint('🚫 Stopping emergency communication monitoring');
+    developer.log('🚫 Stopping emergency communication monitoring');
     _emergencyBroadcastTimer?.cancel();
     _emergencyQueue.clear();
     _messageRetries.clear();

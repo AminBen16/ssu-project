@@ -143,16 +143,25 @@ class TimetableService {
           requirements: requirements ?? {},
           roomData: roomData ?? {},
         );
-        
+
         // Save the generated timetable to cache
         if (result['success'] == true) {
-          final timetable = result['timetable'] as Map<String, Map<String, ScheduledLesson>>;
+          final rawTimetable =
+              result['timetable'] as Map<String, Map<String, dynamic>>;
+          final timetable = rawTimetable
+              .map((day, dayLessons) => MapEntry(
+                  day,
+                  dayLessons
+                      .map((slot, lessonData) =>
+                          MapEntry(slot, ScheduledLesson.fromMap(lessonData)))
+                      .cast<String, ScheduledLesson>()))
+              .cast<String, Map<String, ScheduledLesson>>();
           await saveFullTimetable(
             schoolId: schoolId,
             className: className,
             timetable: timetable,
           );
-          
+
           // Cache validation results
           final cacheKey = 'timetable_validation_${schoolId}_$className';
           await _localDb.setCache(
@@ -161,11 +170,12 @@ class TimetableService {
             expiry: Duration(hours: 24),
           );
         }
-        
+
         return result;
       } else {
         // Fallback to legacy generation method
-        return await _generateLegacyTimetable(schoolId, className, requirements);
+        return await _generateLegacyTimetable(
+            schoolId, className, requirements);
       }
     } catch (e) {
       // Return error information
@@ -193,12 +203,18 @@ class TimetableService {
   ) async {
     // Implement fallback to original generation logic
     // This ensures existing UI continues to work
-    
+
     final timetable = <String, Map<String, ScheduledLesson>>{};
     final conflicts = <TimetableConflict>[];
-    
+
     // Simple legacy generation logic
-    for (final day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']) {
+    for (final day in [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday'
+    ]) {
       timetable[day] = {};
       for (final slot in ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8']) {
         timetable[day]![slot] = ScheduledLesson(
@@ -208,7 +224,7 @@ class TimetableService {
         );
       }
     }
-    
+
     return {
       'timetable': timetable,
       'conflicts': conflicts,
@@ -226,20 +242,30 @@ class TimetableService {
   }) async {
     try {
       // Get existing timetable
-      final timetable = await getClassTimetable(schoolId: schoolId, className: className);
-      
+      final timetable =
+          await getClassTimetable(schoolId: schoolId, className: className);
+
       // Get constraints from database
       final generatorService = TimetableGeneratorService();
-      final constraintData = await generatorService.extractConstraintsFromDatabase(
+      final constraintData =
+          await generatorService.extractConstraintsFromDatabase(
         schoolId: schoolId,
         localDb: _localDb,
         staffService: _staffService,
       );
-      
-      final constraints = constraintData['constraints'] as Map<String, TimetableConstraint>;
-      final teachers = constraints.keys.where((key) => !key.startsWith('subject') && !key.startsWith('global')).toList();
-      final subjects = constraints.values.map((c) => c.subjectId).where((s) => s != 'global').toSet().toList();
-      
+
+      final constraints =
+          constraintData['constraints'] as Map<String, TimetableConstraint>;
+      final teachers = constraints.keys
+          .where(
+              (key) => !key.startsWith('subject') && !key.startsWith('global'))
+          .toList();
+      final subjects = constraints.values
+          .map((c) => c.subjectId)
+          .where((s) => s != 'global')
+          .toSet()
+          .toList();
+
       // Perform comprehensive validation
       final validationData = generatorService.validateAndReportConflicts(
         timetable: timetable,
@@ -250,7 +276,7 @@ class TimetableService {
         days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
         requirements: requirements ?? {},
       );
-      
+
       // Cache validation results
       final cacheKey = 'timetable_validation_${schoolId}_$className';
       await _localDb.setCache(
@@ -258,7 +284,7 @@ class TimetableService {
         jsonEncode(validationData),
         expiry: Duration(hours: 24),
       );
-      
+
       return validationData;
     } catch (e) {
       return {
@@ -283,11 +309,11 @@ class TimetableService {
   }) async {
     final cacheKey = 'timetable_validation_${schoolId}_$className';
     final cached = await _localDb.getCache(cacheKey);
-    
+
     if (cached != null) {
       return jsonDecode(cached) as Map<String, dynamic>;
     }
-    
+
     return null;
   }
 
@@ -296,14 +322,16 @@ class TimetableService {
     required String schoolId,
     required String className,
   }) async {
-    final validationData = await getCachedValidation(schoolId: schoolId, className: className);
-    
+    final validationData =
+        await getCachedValidation(schoolId: schoolId, className: className);
+
     if (validationData != null) {
       return validationData['qualityMetrics'] as Map<String, dynamic>?;
     }
-    
+
     // If no cached data, perform validation
-    final freshValidation = await validateTimetable(schoolId: schoolId, className: className);
+    final freshValidation =
+        await validateTimetable(schoolId: schoolId, className: className);
     return freshValidation['qualityMetrics'] as Map<String, dynamic>?;
   }
 
@@ -312,19 +340,23 @@ class TimetableService {
     required String schoolId,
     required String className,
   }) async {
-    final validationData = await getCachedValidation(schoolId: schoolId, className: className);
-    
+    final validationData =
+        await getCachedValidation(schoolId: schoolId, className: className);
+
     if (validationData != null) {
       return (validationData['suggestions'] as List<dynamic>?)
-          ?.map((s) => s as Map<String, dynamic>)
-          .toList() ?? [];
+              ?.map((s) => s as Map<String, dynamic>)
+              .toList() ??
+          [];
     }
-    
+
     // If no cached data, perform validation
-    final freshValidation = await validateTimetable(schoolId: schoolId, className: className);
+    final freshValidation =
+        await validateTimetable(schoolId: schoolId, className: className);
     return (freshValidation['suggestions'] as List<dynamic>?)
-        ?.map((s) => s as Map<String, dynamic>)
-        .toList() ?? [];
+            ?.map((s) => s as Map<String, dynamic>)
+            .toList() ??
+        [];
   }
 
   /// Fetches all lessons assigned to a specific teacher across all classes.

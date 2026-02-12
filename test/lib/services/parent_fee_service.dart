@@ -1,8 +1,6 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
-import 'package:test/models/user_profile.dart';
-import 'package:test/models/student_model.dart';
 import 'package:test/services/api_client.dart';
+
 import 'package:test/services/offline_service.dart';
 import 'package:test/services/local_database_service.dart';
 import 'package:logger/logger.dart';
@@ -126,8 +124,7 @@ class ParentFeeService {
               await _apiClient.get('/api/students/$studentId/fee-balance');
           if (response == null) return null;
 
-          return FeeBalanceData.fromMap(
-              response['feeBalance'] as Map<String, dynamic>);
+          return FeeBalanceData.fromMap(response['feeBalance']);
         },
         offlineFallback: () async {
           final cached = await _localDb.getCache(cacheKey);
@@ -157,9 +154,7 @@ class ParentFeeService {
           if (response == null) return [];
 
           final List<dynamic> payments = response['payments'] as List<dynamic>;
-          return payments
-              .map((p) => FeePaymentData.fromMap(p as Map<String, dynamic>))
-              .toList();
+          return payments.map((p) => FeePaymentData.fromMap(p)).toList();
         },
         offlineFallback: () async {
           final cached = await _localDb.getCache(cacheKey);
@@ -346,7 +341,8 @@ class ParentFeeService {
   }
 
   /// Gets fee summary for a student
-  Future<Map<String, dynamic>> getFeeSummary(String studentId, {String? schoolId, String? parentId}) async {
+  Future<Map<String, dynamic>> getFeeSummary(String studentId,
+      {String? schoolId, String? parentId}) async {
     try {
       final cacheKey = 'fee_summary_$studentId';
 
@@ -372,7 +368,8 @@ class ParentFeeService {
   }
 
   /// Gets all payments for a school (for admin/fee collection screen)
-  Future<List<FeePaymentData>> getAllPaymentsForSchool(String schoolId, {DateTime? startDate, DateTime? endDate}) async {
+  Future<List<FeePaymentData>> getAllPaymentsForSchool(String schoolId,
+      {DateTime? startDate, DateTime? endDate}) async {
     try {
       final cacheKey = 'school_payments_$schoolId';
 
@@ -385,19 +382,17 @@ class ParentFeeService {
           if (endDate != null) {
             queryParams['endDate'] = endDate.toIso8601String();
           }
-          
+
           final response = await _apiClient.get(
             '/api/schools/$schoolId/payments',
             queryParameters: queryParams.isNotEmpty ? queryParams : null,
           );
 
-          
           if (response == null) return [];
 
-          final List<dynamic> payments = response['payments'] as List<dynamic>? ?? [];
-          return payments
-              .map((p) => FeePaymentData.fromMap(p as Map<String, dynamic>))
-              .toList();
+          final List<dynamic> payments =
+              response['payments'] as List<dynamic>? ?? [];
+          return payments.map((p) => FeePaymentData.fromMap(p)).toList();
         },
         offlineFallback: () async {
           final cached = await _localDb.getCache(cacheKey);
@@ -422,7 +417,6 @@ class ParentFeeService {
     }
   }
 }
-
 
 // Singleton instance
 final parentFeeService = ParentFeeService();

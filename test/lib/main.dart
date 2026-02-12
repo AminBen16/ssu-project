@@ -1,8 +1,9 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:test/providers/user_data_provider.dart';
-import 'package:test/providers/theme_provider.dart';
 import 'package:test/services/communication_service.dart';
 import 'package:test/services/auxiliary_services.dart';
 import 'package:test/services/platform_channels.dart';
@@ -11,7 +12,6 @@ import 'package:test/services/transport_manager.dart';
 import 'package:test/services/message_storage.dart';
 import 'package:test/services/local_database_service.dart';
 import 'package:test/widgets/auth_wrapper.dart';
-import 'package:test/navigation/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,10 +21,10 @@ void main() async {
   try {
     localDatabaseService = LocalDatabaseService();
     await localDatabaseService.initialize();
-    print('LocalDatabaseService initialized successfully');
+    developer.log('LocalDatabaseService initialized successfully');
   } catch (e) {
-    print('Failed to initialize LocalDatabaseService: $e');
-    print('Continuing with in-memory storage only');
+    developer.log('Failed to initialize LocalDatabaseService: $e');
+    developer.log('Continuing with in-memory storage only');
   }
 
   // Initialize communication services

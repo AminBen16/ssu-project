@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -50,8 +52,8 @@ class LocalDatabaseService implements MessageStorage {
       );
     } catch (e) {
       // Fallback to temporary directory if getApplicationDocumentsDirectory fails
-      print('Failed to get application documents directory: $e');
-      print('Using temporary directory as fallback');
+      developer.log('Failed to get application documents directory: $e');
+      developer.log('Using temporary directory as fallback');
       Directory tempDir = Directory.systemTemp;
       String path = join(tempDir.path, _databaseName);
       return await openDatabase(
@@ -516,3 +518,4 @@ class LocalDatabaseService implements MessageStorage {
 
 // Singleton instance
 final localDatabaseService = LocalDatabaseService();
+

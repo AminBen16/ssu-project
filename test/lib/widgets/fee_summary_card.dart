@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -52,7 +54,7 @@ class _FeeSummaryCardState extends State<FeeSummaryCard> {
         });
       }
     } catch (e) {
-      debugPrint('Error loading fee data: $e');
+      developer.log('Error loading fee data: $e');
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -130,3 +132,4 @@ class _FeeSummaryCardState extends State<FeeSummaryCard> {
     );
   }
 }
+

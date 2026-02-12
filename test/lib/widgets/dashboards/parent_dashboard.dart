@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:test/services/fee_service.dart';
@@ -136,7 +138,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
         _recentAnnouncements = announcements.take(5).toList();
       });
     } catch (e) {
-      debugPrint('Error loading announcements: $e');
+      developer.log('Error loading announcements: $e');
       // Keep empty list on error
     } finally {
       setState(() {
@@ -654,3 +656,4 @@ class _ParentDashboardState extends State<ParentDashboard> {
     return Colors.grey.shade300;
   }
 }
+

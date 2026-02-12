@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:test/services/communication/messaging_interface.dart';
 
@@ -135,11 +138,35 @@ class LanTransportLayer extends BaseTransportLayer {
         return false; // Target device not found
       }
 
-      // TODO: Implement actual LAN socket sending
-      // For now, simulate failure to indicate this needs real implementation
-      return false;
+      final targetPeerInfo = targetPeer.first;
+
+      // Establish TCP connection to target device
+      final socket = await Socket.connect(
+        targetPeerInfo.ipAddress,
+        targetPeerInfo.port ?? 8080, // Default port for LAN communication
+        timeout: const Duration(seconds: 5),
+      );
+
+      try {
+        // Send data with length prefix for proper framing
+        final dataBytes = utf8.encode(data);
+        final lengthBytes = ByteData(4)
+          ..setUint32(0, dataBytes.length, Endian.big);
+        socket.add(lengthBytes.buffer.asUint8List());
+        socket.add(dataBytes);
+
+        // Wait for acknowledgment
+        await socket.flush();
+        await socket.timeout(const Duration(seconds: 2)).first;
+
+        return true;
+      } finally {
+        await socket.close();
+      }
     } catch (e) {
-      return false; // Return false on any error instead of suppressing
+      // Log error but don't throw - return false to indicate failure
+      print('LAN transport send failed: $e');
+      return false;
     }
   }
 

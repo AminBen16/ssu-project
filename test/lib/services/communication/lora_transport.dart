@@ -1,7 +1,6 @@
+import 'dart:developer' as developer;
+
 import 'dart:async';
-import 'dart:convert';
-import 'dart:typed_data';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:test/services/communication/messaging_interface.dart';
@@ -50,20 +49,20 @@ class LoRaTransport implements TransportLayer {
 
       if (result['success'] == true) {
         _isInitialized = true;
-        debugPrint('LoRa transport initialized: ${result['message']}');
+        developer.log('LoRa transport initialized: ${result['message']}');
         
         // Listen for incoming LoRa data
         _loraEventSubscription = _loraEventChannel.receiveBroadcastStream().listen(
           _handleLoRaData,
           onError: (error) {
-            debugPrint('LoRa event stream error: $error');
+            developer.log('LoRa event stream error: $error');
           },
         );
       } else {
         throw Exception('LoRa initialization failed: ${result['error']}');
       }
     } catch (e) {
-      debugPrint('Failed to initialize LoRa transport: $e');
+      developer.log('Failed to initialize LoRa transport: $e');
       rethrow;
     }
   }
@@ -80,12 +79,12 @@ class LoRaTransport implements TransportLayer {
       
       if (result['success'] == true) {
         _isConnected = true;
-        debugPrint('LoRa transport started: ${result['message']}');
+        developer.log('LoRa transport started: ${result['message']}');
       } else {
         throw Exception('LoRa start failed: ${result['error']}');
       }
     } catch (e) {
-      debugPrint('Failed to start LoRa transport: $e');
+      developer.log('Failed to start LoRa transport: $e');
       rethrow;
     }
   }
@@ -98,22 +97,22 @@ class LoRaTransport implements TransportLayer {
       
       if (result['success'] == true) {
         _isConnected = false;
-        debugPrint('LoRa transport stopped: ${result['message']}');
+        developer.log('LoRa transport stopped: ${result['message']}');
       } else {
-        debugPrint('LoRa stop warning: ${result['error']}');
+        developer.log('LoRa stop warning: ${result['error']}');
       }
 
       // Cancel event subscription
       await _loraEventSubscription?.cancel();
     } catch (e) {
-      debugPrint('Failed to stop LoRa transport: $e');
+      developer.log('Failed to stop LoRa transport: $e');
     }
   }
 
   @override
   Future<bool> sendData(String data, String targetDeviceId) async {
     if (!_isConnected) {
-      debugPrint('LoRa transport not connected');
+      developer.log('LoRa transport not connected');
       return false;
     }
 
@@ -126,14 +125,14 @@ class LoRaTransport implements TransportLayer {
       });
 
       if (result['success'] == true) {
-        debugPrint('LoRa data sent successfully: ${result['message']}');
+        developer.log('LoRa data sent successfully: ${result['message']}');
         return true;
       } else {
-        debugPrint('LoRa send failed: ${result['error']}');
+        developer.log('LoRa send failed: ${result['error']}');
         return false;
       }
     } catch (e) {
-      debugPrint('Failed to send LoRa data: $e');
+      developer.log('Failed to send LoRa data: $e');
       return false;
     }
   }
@@ -148,7 +147,7 @@ class LoRaTransport implements TransportLayer {
       final result = await _loraChannel.invokeMethod('isAvailable');
       return result['available'] == true;
     } catch (e) {
-      debugPrint('Error checking LoRa availability: $e');
+      developer.log('Error checking LoRa availability: $e');
       return false;
     }
   }
@@ -171,14 +170,14 @@ class LoRaTransport implements TransportLayer {
       });
 
       if (result['success'] == true) {
-        debugPrint('LoRa configured successfully: ${result['message']}');
+        developer.log('LoRa configured successfully: ${result['message']}');
         return true;
       } else {
-        debugPrint('LoRa configuration failed: ${result['error']}');
+        developer.log('LoRa configuration failed: ${result['error']}');
         return false;
       }
     } catch (e) {
-      debugPrint('Failed to configure LoRa: $e');
+      developer.log('Failed to configure LoRa: $e');
       return false;
     }
   }
@@ -189,7 +188,7 @@ class LoRaTransport implements TransportLayer {
       final result = await _loraChannel.invokeMethod('getStatus');
       return result['success'] == true ? result['status'] : null;
     } catch (e) {
-      debugPrint('Failed to get LoRa status: $e');
+      developer.log('Failed to get LoRa status: $e');
       return null;
     }
   }
@@ -200,14 +199,14 @@ class LoRaTransport implements TransportLayer {
       final result = await _loraChannel.invokeMethod('setMode', {'mode': mode});
       
       if (result['success'] == true) {
-        debugPrint('LoRa mode set to $mode: ${result['message']}');
+        developer.log('LoRa mode set to $mode: ${result['message']}');
         return true;
       } else {
-        debugPrint('Failed to set LoRa mode: ${result['error']}');
+        developer.log('Failed to set LoRa mode: ${result['error']}');
         return false;
       }
     } catch (e) {
-      debugPrint('Failed to set LoRa mode: $e');
+      developer.log('Failed to set LoRa mode: $e');
       return false;
     }
   }
@@ -220,10 +219,10 @@ class LoRaTransport implements TransportLayer {
         final sourceDevice = data['sourceDevice'] as String? ?? 'unknown';
         
         _dataStreamController.add(receivedData);
-        debugPrint('Received LoRa data from $sourceDevice: $receivedData');
+        developer.log('Received LoRa data from $sourceDevice: $receivedData');
       }
     } catch (e) {
-      debugPrint('Error handling LoRa data: $e');
+      developer.log('Error handling LoRa data: $e');
     }
   }
 
@@ -239,7 +238,7 @@ class LoRaTransport implements TransportLayer {
     
     for (final permission in permissions) {
       if (statuses[permission] != PermissionStatus.granted) {
-        debugPrint('Permission ${permission.toString()} not granted for LoRa');
+        developer.log('Permission ${permission.toString()} not granted for LoRa');
       }
     }
   }
@@ -249,3 +248,4 @@ class LoRaTransport implements TransportLayer {
     _dataStreamController.close();
   }
 }
+

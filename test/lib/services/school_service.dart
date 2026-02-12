@@ -47,7 +47,6 @@ class SchoolService extends BaseService {
   }
 
   /// Fetches all schools from the backend.
-  @override // Add override since it's now in BaseService (assuming this is how it's handled in the project)
   Future<List<School>> getAllSchools() async {
     final response = await apiClient.get('/api/schools');
     if (response != null && response['schools'] != null) {
@@ -63,12 +62,14 @@ class SchoolService extends BaseService {
   Future<School> getSchool(String? schoolId) async {
     validateId(schoolId, 'School');
     final response = await apiClient.get('/api/schools/$schoolId');
-    final schoolData = response['school'] ?? response; // API might return {'school': {}} or just {}
+    final schoolData = response['school'] ??
+        response; // API might return {'school': {}} or just {}
     return School.fromMap(schoolData); // Use fromMap
   }
 
   /// Updates a school's general information.
-  Future<void> updateSchool(String schoolId, Map<String, dynamic> updateData) async {
+  Future<void> updateSchool(
+      String schoolId, Map<String, dynamic> updateData) async {
     validateId(schoolId, 'School');
     await apiClient.put(
       '/api/schools/$schoolId',
@@ -101,7 +102,9 @@ class SchoolService extends BaseService {
       // The backend now returns actual Class objects, so we need to map them correctly.
       // For now, it returns a list of maps, we will return the "name" of the class.
       // A more robust solution would be to return a List<Class> object.
-      return classesList.map((classJson) => classJson['name'].toString()).toList();
+      return classesList
+          .map((classJson) => classJson['name'].toString())
+          .toList();
     }
     return [];
   }

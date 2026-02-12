@@ -50,7 +50,8 @@ class SchemeOfWorkService {
         await _apiClient.post('/api/schools/$schoolId/schemes-of-work',
             body: schemeData);
         // Cache the saved scheme locally
-        await _localDb.saveData('scheme_of_work', '${schoolId}_${subject}_${className}_${term}_$year', {
+        await _localDb.saveData('scheme_of_work',
+            '${schoolId}_${subject}_${className}_${term}_$year', {
           'scheme': schemeData,
           'lastUpdated': DateTime.now().toIso8601String(),
         });
@@ -66,7 +67,8 @@ class SchemeOfWorkService {
           ...schemeData,
         });
         // Cache locally for immediate display
-        await _localDb.saveData('scheme_of_work', '${schoolId}_${subject}_${className}_${term}_$year', {
+        await _localDb.saveData('scheme_of_work',
+            '${schoolId}_${subject}_${className}_${term}_$year', {
           'scheme': schemeData,
           'lastUpdated': DateTime.now().toIso8601String(),
         });
@@ -84,17 +86,42 @@ class SchemeOfWorkService {
         ...schemeData,
       });
       // Cache locally for immediate display
-      await _localDb.saveData('scheme_of_work', '${schoolId}_${subject}_${className}_${term}_$year', {
+      await _localDb.saveData('scheme_of_work',
+          '${schoolId}_${subject}_${className}_${term}_$year', {
         'scheme': schemeData,
         'lastUpdated': DateTime.now().toIso8601String(),
       });
     }
   }
 
-  /// Deletes a scheme of work by its ID.
+  /// Deletes a scheme of work by its ID with offline support.
   Future<void> deleteSchemeOfWork(String schemeId) async {
-    // Note: Delete functionality not implemented in backend yet
-    throw Exception('Delete functionality not implemented yet');
+    final isOnline = await _offlineService.isOnline;
+    if (isOnline) {
+      try {
+        await _apiClient.delete('/api/schemes-of-work/$schemeId');
+        // Remove from local cache
+        await _localDb.deleteData('scheme_of_work', schemeId);
+      } catch (e) {
+        // Queue for offline sync
+        await _offlineService.queueForSync('delete', {
+          'table': 'scheme_of_work',
+          'id': schemeId,
+        });
+        rethrow;
+      }
+    } else {
+      // Queue for offline sync
+      await _offlineService.queueForSync('delete', {
+        'table': 'scheme_of_work',
+        'id': schemeId,
+      });
+      // Mark for deletion in local cache
+      await _localDb.saveData('scheme_of_work', schemeId, {
+        'deleted': true,
+        'lastUpdated': DateTime.now().toIso8601String(),
+      });
+    }
   }
 
   /// Validates scheme of work against NCDC curriculum
@@ -107,9 +134,10 @@ class SchemeOfWorkService {
   }) async {
     try {
       // Get scheme of work
-      final scheme = await getSchemeOfWork(schoolId, subject, className, term, year);
+      final scheme =
+          await getSchemeOfWork(schoolId, subject, className, term, year);
       final schemeTopics = scheme['topics'] as List<dynamic>? ?? [];
-      
+
       // Use NCDC service for validation
       return await _ncdcService.validateSchemeOfWork(
         subject: subject,
@@ -130,11 +158,13 @@ class SchemeOfWorkService {
     required int year,
   }) async {
     try {
-      final scheme = await getSchemeOfWork(schoolId, subject, className, term, year);
-      
+      final scheme =
+          await getSchemeOfWork(schoolId, subject, className, term, year);
+
       // Simple PDF generation without external dependencies
-      final pdfData = 'Scheme of Work - $subject\nClass: $className\nTerm: $term, Year: $year\n\nTopics:\n${((scheme['topics'] as List<dynamic>?) ?? []).map((topic) => '- ${topic['name'] ?? 'Unknown Topic'}').join('\n')}';
-      
+      final pdfData =
+          'Scheme of Work - $subject\nClass: $className\nTerm: $term, Year: $year\n\nTopics:\n${((scheme['topics'] as List<dynamic>?) ?? []).map((topic) => '- ${topic['name'] ?? 'Unknown Topic'}').join('\n')}';
+
       return Uint8List.fromList(pdfData.codeUnits);
     } catch (e) {
       throw Exception('Failed to export to PDF: $e');
@@ -150,19 +180,21 @@ class SchemeOfWorkService {
     required int year,
   }) async {
     try {
-      final scheme = await getSchemeOfWork(schoolId, subject, className, term, year);
+      final scheme =
+          await getSchemeOfWork(schoolId, subject, className, term, year);
       final csvData = <List<String>>[];
-      
+
       // Add header
-      csvData.add(['Week', 'Topic', 'Learning Outcomes', 'Activities', 'Assessment']);
-      
+      csvData.add(
+          ['Week', 'Topic', 'Learning Outcomes', 'Activities', 'Assessment']);
+
       // Add topics
       final topics = scheme['topics'] as List<dynamic>? ?? [];
       for (int i = 0; i < topics.length; i++) {
         final topic = topics[i];
         final outcomesList = topic['outcomes'] as List<dynamic>?;
         final activitiesList = topic['activities'] as List<dynamic>?;
-        
+
         csvData.add([
           'Week ${i + 1}',
           topic['name']?.toString() ?? '',
@@ -171,12 +203,14 @@ class SchemeOfWorkService {
           topic['assessment']?.toString() ?? '',
         ]);
       }
-      
+
       // Convert to CSV string
       final csvString = csvData
-          .map((row) => row.map((cell) => '"${cell.toString().replaceAll('"', '""')}"').join(','))
+          .map((row) => row
+              .map((cell) => '"${cell.toString().replaceAll('"', '""')}"')
+              .join(','))
           .join('\n');
-      
+
       return csvString;
     } catch (e) {
       throw Exception('Failed to export to Excel: $e');
@@ -192,9 +226,10 @@ class SchemeOfWorkService {
     required int year,
   }) async {
     try {
-      final scheme = await getSchemeOfWork(schoolId, subject, className, term, year);
+      final scheme =
+          await getSchemeOfWork(schoolId, subject, className, term, year);
       final topics = scheme['topics'] as List<dynamic>? ?? [];
-      
+
       final html = '''
 <!DOCTYPE html>
 <html>
@@ -218,11 +253,11 @@ class SchemeOfWorkService {
         <p><strong>Term:</strong> $term, $year</p>
     </div>
     ${topics.asMap().entries.map((entry) {
-      final topic = entry.value;
-      final outcomesList = topic['outcomes'] as List<dynamic>?;
-      final activitiesList = topic['activities'] as List<dynamic>?;
-      
-      return '''
+        final topic = entry.value;
+        final outcomesList = topic['outcomes'] as List<dynamic>?;
+        final activitiesList = topic['activities'] as List<dynamic>?;
+
+        return '''
     <div class="topic">
         <div class="topic-title">Week ${entry.key + 1}: ${topic['name'] ?? 'Unknown Topic'}</div>
         <div class="outcomes">
@@ -239,11 +274,11 @@ class SchemeOfWorkService {
         </div>
     </div>
     ''';
-    }).join('')}
+      }).join('')}
 </body>
 </html>
       ''';
-      
+
       return html;
     } catch (e) {
       throw Exception('Failed to export to Word: $e');

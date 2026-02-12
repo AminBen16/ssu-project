@@ -18,9 +18,7 @@ class LibraryService {
         final response =
             await _apiClient.get('/api/schools/$schoolId/library/books');
         final List<dynamic> bookList = response['books'] as List<dynamic>;
-        return bookList
-            .map((json) => Book.fromMap(json as Map<String, dynamic>))
-            .toList();
+        return bookList.map((json) => Book.fromMap(json)).toList();
       },
       offlineFallback: () async {
         // 1. Try to get cached books (list)
@@ -52,10 +50,12 @@ class LibraryService {
     final online = await _offlineService.isOnline;
     if (online) {
       try {
-        final response = await _apiClient
-            .post('/api/schools/$schoolId/library/books', body: bookToCreate.toMap());
+        final response = await _apiClient.post(
+            '/api/schools/$schoolId/library/books',
+            body: bookToCreate.toMap());
         final createdBook = Book.fromMap(response as Map<String, dynamic>);
-        await _localDb.saveData('books', createdBook.id!, createdBook.toMap()); // Save to local database
+        await _localDb.saveData('books', createdBook.id!,
+            createdBook.toMap()); // Save to local database
         return createdBook;
       } catch (e) {
         // If online call fails, queue for sync
@@ -64,7 +64,11 @@ class LibraryService {
           'schoolId': schoolId,
           ...bookToCreate.toMap(),
         });
-        await _localDb.saveData('books', bookToCreate.id!, bookToCreate.toMap()); // Save to local database for immediate local availability
+        await _localDb.saveData(
+            'books',
+            bookToCreate.id!,
+            bookToCreate
+                .toMap()); // Save to local database for immediate local availability
         rethrow;
       }
     } else {
@@ -74,7 +78,11 @@ class LibraryService {
         'schoolId': schoolId,
         ...bookToCreate.toMap(),
       });
-      await _localDb.saveData('books', bookToCreate.id!, bookToCreate.toMap()); // Save to local database for immediate local availability
+      await _localDb.saveData(
+          'books',
+          bookToCreate.id!,
+          bookToCreate
+              .toMap()); // Save to local database for immediate local availability
       // Return the book as if it was created (optimistic update)
       return bookToCreate;
     }
@@ -119,7 +127,8 @@ class LibraryService {
     if (online) {
       try {
         await _apiClient.delete('/api/schools/$schoolId/library/books/$bookId');
-        await _localDb.deleteData('books', bookId); // Delete from local database
+        await _localDb.deleteData(
+            'books', bookId); // Delete from local database
       } catch (e) {
         // If online call fails, queue for sync
         await _offlineService.queueForSync('delete', {
@@ -127,7 +136,8 @@ class LibraryService {
           'schoolId': schoolId,
           'id': bookId,
         });
-        await _localDb.deleteData('books', bookId); // Delete from local database for immediate local reflection
+        await _localDb.deleteData('books',
+            bookId); // Delete from local database for immediate local reflection
         rethrow;
       }
     } else {
@@ -137,7 +147,8 @@ class LibraryService {
         'schoolId': schoolId,
         'id': bookId,
       });
-      await _localDb.deleteData('books', bookId); // Delete from local database for immediate local reflection
+      await _localDb.deleteData('books',
+          bookId); // Delete from local database for immediate local reflection
     }
   }
 
@@ -223,9 +234,7 @@ class LibraryService {
         // For now, returning all local books as a fallback, assuming filtering
         // might happen upstream or this is a placeholder.
         final allLocalBooks = await _localDb.getAllData('books');
-        return allLocalBooks
-            .map((json) => Book.fromMap(json as Map<String, dynamic>))
-            .toList();
+        return allLocalBooks.map((json) => Book.fromMap(json)).toList();
       },
       cacheKey: cacheKey,
     );

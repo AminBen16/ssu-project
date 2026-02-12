@@ -61,4 +61,6 @@ class TimeSlot {
       endTime: map['endTime'] as String,
     );
   }
+
+  String get displayTime => '$startTime - $endTime';
 }

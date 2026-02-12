@@ -9,6 +9,7 @@ abstract class MeshPlatformChannels {
   Future<void> stopDiscovery();
   Future<void> sendData(String deviceId, String data);
   Future<void> broadcastData(String data);
+  Future<Map<String, dynamic>> sendDataToServer(Map<String, dynamic> data);
   Stream<Map<String, dynamic>> get onMessageReceived;
   Stream<List<Map<String, dynamic>>> get onPeersChanged;
   Future<void> dispose();
@@ -125,6 +126,19 @@ class MeshPlatformChannelsImpl implements MeshPlatformChannels {
       });
     } on PlatformException {
       // Ignore
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> sendDataToServer(
+      Map<String, dynamic> data) async {
+    try {
+      final result =
+          await _methodChannel.invokeMethod('sendDataToServer', data);
+      return Map<String, dynamic>.from(result ?? {});
+    } on PlatformException {
+      // Return empty map on error
+      return {};
     }
   }
 

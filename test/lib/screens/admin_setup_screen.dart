@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 // ignore_for_file: deprecated_member_use
 
 import 'dart:typed_data';
@@ -131,7 +133,7 @@ class _AdminSetupScreenState extends State<AdminSetupScreen> {
       // Navigate to the dashboard
       await _completeSetup(userDataProvider);
     } catch (e) {
-      debugPrint('Error finishing setup: $e');
+      developer.log('Error finishing setup: $e');
       if (mounted) {
         String errorMessage = 'Failed to save settings: ${e.toString()}';
         ScaffoldMessenger.of(context).showSnackBar(
@@ -277,3 +279,4 @@ class _AdminSetupScreenState extends State<AdminSetupScreen> {
     );
   }
 }
+

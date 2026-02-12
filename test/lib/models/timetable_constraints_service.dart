@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart';
+import 'dart:developer' as developer;
+
 import 'package:test/services/api_client.dart';
 
 class TimetableConstraintsService {
@@ -16,13 +17,16 @@ class TimetableConstraintsService {
       dataToSave[subjectCode] = {'min': values.$1, 'max': values.$2};
     });
 
-    await _apiClient.post('/api/schools/$schoolId/constraints', body: {'subjectConstraints': dataToSave});
+    await _apiClient.post('/api/schools/$schoolId/constraints',
+        body: {'subjectConstraints': dataToSave});
   }
 
   Future<Map<String, (int?, int?)>> getConstraints(String schoolId) async {
     try {
-      final response = await _apiClient.get('/api/schools/$schoolId/constraints');
-      final data = response['subjectConstraints'] as Map<String, dynamic>? ?? {};
+      final response =
+          await _apiClient.get('/api/schools/$schoolId/constraints');
+      final data =
+          response['subjectConstraints'] as Map<String, dynamic>? ?? {};
       return data.map((subjectCode, values) {
         final valuesMap = values as Map<String, dynamic>;
         return MapEntry(subjectCode, (
@@ -31,7 +35,7 @@ class TimetableConstraintsService {
         ));
       });
     } catch (e) {
-      debugPrint('Error fetching constraints: $e');
+      developer.log('Error fetching constraints: $e');
       return {};
     }
   }

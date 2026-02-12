@@ -1,4 +1,5 @@
 import 'package:test/models/user_roles.dart';
+import 'package:test/models/user_profile.dart';
 
 class Staff {
   final String id;
@@ -8,7 +9,7 @@ class Staff {
   final String phoneNumber;
   final String? schoolId;
   final Map<String, dynamic>? profile;
-  final StaffRole? role;
+  final UserRole? role;
   final List<String>? subjectCodes;
   final List<String>? teachingDays;
   final String? qualification;
@@ -41,7 +42,7 @@ class Staff {
     this.yearsOfExperience,
   });
 
-  String get fullName => '${firstName ?? ''} ${lastName ?? ''}'.trim();
+  String get fullName => '$firstName $lastName'.trim();
 
   Map<String, dynamic> toMap() {
     return {
@@ -75,17 +76,39 @@ class Staff {
       phoneNumber: map['phoneNumber'] as String? ?? '',
       schoolId: map['schoolId'] as String?,
       profile: map['profile'] as Map<String, dynamic>?,
-      role: map['role'] != null ? StaffRole.fromString(map['role'] as String) : null,
+      role: map['role'] != null
+          ? UserRole.fromString(map['role'] as String)
+          : null,
       subjectCodes: (map['subjectCodes'] as List<dynamic>?)?.cast<String>(),
       teachingDays: (map['teachingDays'] as List<dynamic>?)?.cast<String>(),
       qualification: map['qualification'] as String?,
       maxPeriodsPerDay: map['maxPeriodsPerDay'] as int?,
       maxConsecutivePeriods: map['maxConsecutivePeriods'] as int?,
-      preferredTimeSlots: (map['preferredTimeSlots'] as List<dynamic>?)?.cast<String>(),
+      preferredTimeSlots:
+          (map['preferredTimeSlots'] as List<dynamic>?)?.cast<String>(),
       preferredDays: (map['preferredDays'] as List<dynamic>?)?.cast<String>(),
-      assignedSubjects: (map['assignedSubjects'] as List<dynamic>?)?.cast<String>(),
-      qualifications: (map['qualifications'] as List<dynamic>?)?.cast<Map<String, dynamic>>(),
+      assignedSubjects:
+          (map['assignedSubjects'] as List<dynamic>?)?.cast<String>(),
+      qualifications: (map['qualifications'] as List<dynamic>?)
+          ?.cast<Map<String, dynamic>>(),
       yearsOfExperience: map['yearsOfExperience'] as int?,
+    );
+  }
+
+  UserProfile toUserProfile() {
+    return UserProfile(
+      id: id,
+      uid: id,
+      email: email,
+      firstName: firstName,
+      lastName: lastName,
+      role: role ?? UserRole.pending,
+      schoolId: schoolId,
+      profilePictureUrl: profile?['profilePictureUrl'] as String?,
+      phoneNumber: phoneNumber,
+      qualification: qualification,
+      subjectCodes: subjectCodes,
+      teachingDays: teachingDays,
     );
   }
 }

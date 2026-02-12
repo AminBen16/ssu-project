@@ -12,20 +12,16 @@ class CurriculumService {
   Future<List<Subject>> getSubjects() async {
     try {
       // Use curriculum database service for real data
-      return await CurriculumDatabaseService.getAllSubjects();
+      final subjects = await CurriculumDatabaseService.getAllSubjects();
+      if (subjects.isNotEmpty) {
+        return subjects;
+      }
+      // If no subjects in database, return empty list instead of placeholder
+      return [];
     } catch (e) {
       _logger.e('Error fetching subjects from database: $e');
-      // Fallback to placeholder data for offline functionality
-      return [
-        Subject(
-          id: 1,
-          name: 'Chemistry',
-          educationLevel: 'Advanced Secondary',
-          className: 'Senior Five and Senior Six',
-          periodDuration: 40,
-          periodsPerWeek: 9,
-        ),
-      ];
+      // Return empty list instead of placeholder data
+      return [];
     }
   }
 
@@ -33,33 +29,10 @@ class CurriculumService {
     try {
       // Use correct method name from database service
       final topics = await CurriculumDatabaseService.getTopicsByStrand(strandId);
-      if (topics.isNotEmpty) {
-        return topics;
-      }
-      
-      // Fallback to placeholder data for offline functionality
-      return [
-        Topic(
-          id: 1,
-          strandId: strandId,
-          name: 'Chemical Reactions',
-          code: 'CR001',
-          description: 'Understanding chemical reactions',
-          orderIndex: 1,
-        ),
-      ];
+      return topics; // Return whatever is in database, even if empty
     } catch (e) {
       _logger.e('Error fetching topics: $e');
-      return [
-        Topic(
-          id: 1,
-          strandId: strandId,
-          name: 'Chemical Reactions',
-          code: 'CR001',
-          description: 'Understanding chemical reactions',
-          orderIndex: 1,
-        ),
-      ];
+      return []; // Return empty list instead of placeholder data
     }
   }
 
@@ -83,26 +56,19 @@ class CurriculumService {
 
   Future<List<CurriculumCompetence>> getCompetencesByTopic(int topicId) async {
     try {
-      // Note: Competencies are stored in the database but need to be mapped to CurriculumCompetence
-      // For now, return placeholder data until the mapping is implemented
-      return [
-        CurriculumCompetence(
-          id: 1,
-          topicId: topicId,
-          statement: 'Analyze chemical equations',
-        ),
-      ];
+      // Get competencies from database - they are stored as part of curriculum data
+      final competencies = await CurriculumDatabaseService.getCompetenciesByTopic(topicId);
+      return competencies.map((comp) => CurriculumCompetence(
+        id: comp.id,
+        topicId: topicId,
+        statement: comp.text,
+      )).toList();
     } catch (e) {
       _logger.e('Error fetching competences: $e');
-      return [
-        CurriculumCompetence(
-          id: 1,
-          topicId: topicId,
-          statement: 'Analyze chemical equations',
-        ),
-      ];
+      return []; // Return empty list instead of placeholder
     }
   }
+
 
 
   Future<List<SuggestedActivity>> getActivitiesByTopic(int topicId) async {

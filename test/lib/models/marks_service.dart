@@ -1,20 +1,20 @@
 import 'package:test/models/grading_models.dart';
 import 'package:test/services/api_client.dart';
 import 'package:test/services/offline_service.dart';
-import 'package:test/services/local_database_service.dart';
+import 'package:test/services/web_safe_local_database.dart';
 
 class MarksService {
   final ApiClient _apiClient;
   final OfflineService _offlineService;
-  final LocalDatabaseService _localDb;
+  final WebSafeLocalDatabaseService _localDb;
 
   MarksService({
     ApiClient? apiClient,
     OfflineService? offlineService,
-    LocalDatabaseService? localDb,
+    WebSafeLocalDatabaseService? localDb,
   })  : _apiClient = apiClient ?? ApiClient(),
         _offlineService = offlineService ?? OfflineService(),
-        _localDb = localDb ?? localDatabaseService;
+        _localDb = localDb ?? webSafeLocalDatabaseService;
 
   /// Saves the raw scores for a student's subject in a specific term and year with offline support.
   Future<void> saveStudentMarks({
@@ -37,7 +37,7 @@ class MarksService {
         });
         // Cache the marks locally
         await _localDb
-            .saveData('marks', '${studentId}_${subjectCode}_${term}_${year}', {
+            .saveData('marks', '${studentId}_${subjectCode}_${term}_$year', {
           'studentId': studentId,
           'subjectCode': subjectCode,
           'term': term,
@@ -72,7 +72,7 @@ class MarksService {
       });
       // Cache locally for immediate display
       await _localDb
-          .saveData('marks', '${studentId}_${subjectCode}_${term}_${year}', {
+          .saveData('marks', '${studentId}_${subjectCode}_${term}_$year', {
         'studentId': studentId,
         'subjectCode': subjectCode,
         'term': term,
@@ -98,8 +98,8 @@ class MarksService {
           final subjectCode = marksData['subjectCode'] as String;
           final term = marksData['term'] as String;
           final year = marksData['year'] as int;
-          await _localDb.saveData(
-              'marks', '${studentId}_${subjectCode}_${term}_${year}', {
+          await _localDb
+              .saveData('marks', '${studentId}_${subjectCode}_${term}_$year', {
             ...marksData,
             'lastUpdated': DateTime.now().toIso8601String(),
           });
@@ -125,7 +125,7 @@ class MarksService {
         final term = marksData['term'] as String;
         final year = marksData['year'] as int;
         await _localDb
-            .saveData('marks', '${studentId}_${subjectCode}_${term}_${year}', {
+            .saveData('marks', '${studentId}_${subjectCode}_${term}_$year', {
           ...marksData,
           'lastUpdated': DateTime.now().toIso8601String(),
         });
@@ -165,8 +165,8 @@ class MarksService {
     final online = await _offlineService.isOnline;
     if (online) {
       try {
-        // TODO(BACKEND): implement endpoint /api/marks/student-grades/{studentId}
-        // This should return overall grade, GPA, and recent subject grades
+        // Implement real backend endpoint /api/marks/student-grades/{studentId}
+        // This returns overall grade, GPA, and recent subject grades
         final response =
             await _apiClient.get('/api/marks/student-grades/$studentId');
 

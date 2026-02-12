@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/foundation.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -18,7 +20,7 @@ class ExamTypesettingService {
             question.imageUrl!,
           );
         } catch (e) {
-          debugPrint('Could not fetch image: ${question.imageUrl}');
+          developer.log('Could not fetch image: ${question.imageUrl}');
         }
       }
     }
@@ -146,3 +148,4 @@ class ExamTypesettingService {
     }
   }
 }
+

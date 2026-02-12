@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'dart:io';
 import '../models/curriculum_models.dart';
 
@@ -37,7 +38,7 @@ class NCDCCurriculumParser {
     final subjectName = _extractSubjectName(fileName);
     
     if (!await file.exists()) {
-      print('File not found: $filePath');
+      developer.log('File not found: $filePath');
       return;
     }
 
@@ -139,7 +140,7 @@ class NCDCCurriculumParser {
     _parsedActivities[subjectName] = activities;
     _parsedAssessments[subjectName] = assessments;
     
-    print('Parsed $subjectName: ${subjects.length} subjects, ${strands.length} strands, ${topics.length} topics');
+    developer.log('Parsed $subjectName: ${subjects.length} subjects, ${strands.length} strands, ${topics.length} topics');
   }
 
   String _extractSubjectName(String fileName) {

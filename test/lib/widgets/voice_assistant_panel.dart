@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -52,7 +54,7 @@ class _VoiceAssistantPanelState extends State<VoiceAssistantPanel> {
         });
       }
     } catch (e) {
-      debugPrint('Error initializing voice services: $e');
+      developer.log('Error initializing voice services: $e');
       if (mounted) {
         setState(() => _statusMessage = 'Error initializing voice services.');
       }
@@ -70,9 +72,9 @@ class _VoiceAssistantPanelState extends State<VoiceAssistantPanel> {
     if (text.isNotEmpty) {
       try {
         await _flutterTts.speak(text);
-        debugPrint('Speaking: $text');
+        developer.log('Speaking: $text');
       } catch (e) {
-        debugPrint('TTS Error: $e');
+        developer.log('TTS Error: $e');
         // Fallback: show message visually if TTS fails
         if (mounted) {
           setState(() => _statusMessage = text);
@@ -106,7 +108,7 @@ class _VoiceAssistantPanelState extends State<VoiceAssistantPanel> {
         onResult: (result) {
           setState(() {
             _transcribedText = result.recognizedWords;
-            debugPrint('Transcribed: ${result.recognizedWords}');
+            developer.log('Transcribed: ${result.recognizedWords}');
           });
           if (result.finalResult) {
             _stopListeningAndProcess();
@@ -123,7 +125,7 @@ class _VoiceAssistantPanelState extends State<VoiceAssistantPanel> {
         // FIXED: Removed onDone parameter - not supported in speech_to_text API
       );
     } catch (e) {
-      debugPrint('Speech recognition exception: $e');
+      developer.log('Speech recognition exception: $e');
       setState(() {
         _isListening = false;
         _statusMessage = 'Speech recognition failed. Please try again.';
@@ -179,7 +181,7 @@ class _VoiceAssistantPanelState extends State<VoiceAssistantPanel> {
             await _handleIntent(intent);
           }
         } catch (e) {
-          debugPrint('Intent processing error: $e');
+          developer.log('Intent processing error: $e');
           setState(() {
             _isProcessing = false;
             _statusMessage = 'Error processing command. Please try again.';
@@ -194,7 +196,7 @@ class _VoiceAssistantPanelState extends State<VoiceAssistantPanel> {
         _speak(_statusMessage);
       }
     } catch (e) {
-      debugPrint('Stop listening error: $e');
+      developer.log('Stop listening error: $e');
       setState(() {
         _isListening = false;
         _isProcessing = false;
@@ -418,3 +420,4 @@ class _VoiceAssistantPanelState extends State<VoiceAssistantPanel> {
     );
   }
 }
+

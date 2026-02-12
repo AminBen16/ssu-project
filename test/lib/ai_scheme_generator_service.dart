@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart';
+import 'dart:developer' as developer;
+
 import 'package:test/models/scheme_of_work_model.dart';
 
 class AISchemeGeneratorService {
@@ -14,7 +15,7 @@ class AISchemeGeneratorService {
 
     // This is a placeholder. In a real application, you would make an API call
     // to a generative AI service (like Google's Gemini API) here.
-    debugPrint(
+    developer.log(
         'Generating scheme for $subject, $className, $term, $year in $country');
 
     // Return some dummy data that matches the expected structure.

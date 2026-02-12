@@ -25,8 +25,8 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
 
   void _loadPrivacySettings() {
     // Load privacy settings from user preferences or provider
-    final userData = Provider.of<UserDataProvider>(context, listen: false);
     // For now, use default values - in real implementation, load from storage
+    // userData could be used to access user profile if needed in future
   }
 
   Future<void> _savePrivacySettings() async {
@@ -281,7 +281,8 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              if (newPasswordController.text != confirmPasswordController.text) {
+              if (newPasswordController.text !=
+                  confirmPasswordController.text) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Passwords do not match')),
                 );
@@ -289,18 +290,20 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
               }
 
               try {
-                final userData = Provider.of<UserDataProvider>(context, listen: false);
+                final userData =
+                    Provider.of<UserDataProvider>(context, listen: false);
                 await AuthService().changePassword(
                   userData.userProfile!.uid,
                   currentPasswordController.text,
                   newPasswordController.text,
                 );
-                
+
                 if (mounted) {
                   Navigator.of(context).pop();
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Password changed successfully')),
+                      const SnackBar(
+                          content: Text('Password changed successfully')),
                     );
                   }
                 }
@@ -325,11 +328,12 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
     try {
       final userData = Provider.of<UserDataProvider>(context, listen: false);
       await AuthService().deleteAccount(userData.userProfile!.uid);
-      
+
       if (mounted) {
         await userData.logout();
         if (mounted) {
-          Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil('/login', (route) => false);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Account deleted successfully')),

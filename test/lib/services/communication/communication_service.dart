@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -107,7 +109,7 @@ class CommunicationService implements msg_interface.CommunicationService {
   @override
   Future<void> initialize() async {
     try {
-      debugPrint('Initializing real communication service...');
+      developer.log('Initializing real communication service...');
 
       // Start the real transport manager
       await _transportManager.start();
@@ -121,9 +123,9 @@ class CommunicationService implements msg_interface.CommunicationService {
       // Load existing messages
       await _loadExistingMessages();
 
-      debugPrint('Real communication service initialized successfully');
+      developer.log('Real communication service initialized successfully');
     } catch (e) {
-      debugPrint('Failed to initialize communication service: $e');
+      developer.log('Failed to initialize communication service: $e');
       rethrow;
     }
   }
@@ -131,14 +133,14 @@ class CommunicationService implements msg_interface.CommunicationService {
   /// Initialize real communication system with Bluetooth and Wi-Fi Direct
   Future<void> _initializeRealCommunication() async {
     try {
-      debugPrint('Setting up real communication transports...');
+      developer.log('Setting up real communication transports...');
 
       // The RealTransportManager is already instantiated in constructor
       // It will handle Bluetooth and Wi-Fi Direct initialization
 
-      debugPrint('Real communication system setup complete');
+      developer.log('Real communication system setup complete');
     } catch (e) {
-      debugPrint('Failed to setup real communication: $e');
+      developer.log('Failed to setup real communication: $e');
     }
   }
 
@@ -288,7 +290,7 @@ class CommunicationService implements msg_interface.CommunicationService {
         _handleEmergencyMessage(decryptedMessage);
       }
     } catch (e) {
-      debugPrint('Failed to decrypt message: $e');
+      developer.log('Failed to decrypt message: $e');
     }
   }
 
@@ -350,7 +352,7 @@ class CommunicationService implements msg_interface.CommunicationService {
       final messageJson = jsonEncode(message.toJson());
       await _transportManager.sendData(messageJson);
     } catch (e) {
-      debugPrint('Failed to relay message: $e');
+      developer.log('Failed to relay message: $e');
     }
   }
 
@@ -424,3 +426,4 @@ class CommunicationService implements msg_interface.CommunicationService {
     );
   }
 }
+

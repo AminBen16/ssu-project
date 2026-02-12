@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/services.dart' show rootBundle;
@@ -279,9 +281,9 @@ class SyllabusDatabaseService {
       // Load O-Level data
       await _loadDataFromFile('assets/data/olevel_data.json', 'Lower Secondary');
       
-      print('Syllabus data loaded successfully into database');
+      developer.log('Syllabus data loaded successfully into database');
     } catch (e) {
-      print('Error loading syllabus data: $e');
+      developer.log('Error loading syllabus data: $e');
     }
   }
 
@@ -308,9 +310,9 @@ class SyllabusDatabaseService {
         });
       }
       
-      print('Loaded ${jsonData.length} entries from $filename');
+      developer.log('Loaded ${jsonData.length} entries from $filename');
     } catch (e) {
-      print('Error loading data from $filename: $e');
+      developer.log('Error loading data from $filename: $e');
     }
   }
 
@@ -660,3 +662,4 @@ class SearchResult {
     required this.matchedFields,
   });
 }
+
