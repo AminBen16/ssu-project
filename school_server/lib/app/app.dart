@@ -1,3 +1,5 @@
+import 'package:shelf_router/shelf_router.dart';
+
 import 'app_router.dart';
 import 'dependencies.dart';
 
@@ -10,7 +12,7 @@ class App {
   App._(this.dependencies) : router = AppRouter(dependencies).build();
 
   final AppDependencies dependencies;
-  final dynamic router;
+  final Router router;
 
   static Future<App> create() async {
     final dependencies = await AppDependencies.create();
