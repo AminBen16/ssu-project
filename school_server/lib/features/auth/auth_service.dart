@@ -4,15 +4,11 @@ import 'package:bcrypt/bcrypt.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:shelf/shelf.dart';
 
+import '../../../services/real_email_service.dart';
 import '../../app/dependencies.dart';
 import '../../auth_middleware.dart';
 
 /// Application service for authentication use cases.
-///
-/// This is the first bounded feature being extracted from the legacy server
-/// bootstrap. The service owns authentication behavior; route registration is
-/// kept separate so the feature can later be mounted into AppRouter without
-/// coupling the HTTP layer to the business logic.
 class AuthService {
   AuthService(this.dependencies);
 
@@ -20,42 +16,28 @@ class AuthService {
 
   Future<Response> register(Request request) async {
     try {
-      final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
+      final body = await _body(request);
       final email = body['email'] as String?;
       final password = body['password'] as String?;
       final firstName = body['firstName'] as String?;
       final lastName = body['lastName'] as String?;
-
       if (email == null || password == null) {
         return _json(400, {'error': 'Email and password are required'});
       }
-
-      final userCount = await dependencies.database.getTotalUserCount();
-      if (userCount > 0) {
-        return _json(403, {
-          'error': 'An administrator account already exists. Public registration is not available.'
-        });
+      if (await dependencies.database.getTotalUserCount() > 0) {
+        return _json(403, {'error': 'An administrator account already exists. Public registration is not available.'});
       }
-
-      final hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
       final newUser = await dependencies.database.createUser(
         email: email,
-        hashedPassword: hashedPassword,
+        hashedPassword: BCrypt.hashpw(password, BCrypt.gensalt()),
         otherData: {
           'role': 'chief_admin',
           if (firstName != null) 'first_name': firstName,
           if (lastName != null) 'last_name': lastName,
         },
       );
-
-      final token = AuthMiddleware.generateToken(
-        newUser['id'].toString(),
-        newUser['email'].toString(),
-        newUser['role'].toString(),
-      );
-
       return _json(200, {
-        'token': token,
+        'token': AuthMiddleware.generateToken(newUser['id'].toString(), newUser['email'].toString(), newUser['role'].toString()),
         'user': {
           'id': newUser['id'],
           'email': newUser['email'],
@@ -72,73 +54,151 @@ class AuthService {
 
   Future<Response> login(Request request) async {
     try {
-      final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
+      final body = await _body(request);
       final email = body['email'] as String?;
       final password = body['password'] as String?;
-
-      if (email == null || password == null) {
-        return _json(400, {'message': 'Email and password are required'});
-      }
-
+      if (email == null || password == null) return _json(400, {'message': 'Email and password are required'});
       final user = await dependencies.database.findUserByEmail(email);
-      if (user == null) {
-        return _json(401, {'message': 'No account found with this email address'});
+      if (user == null) return _json(401, {'message': 'No account found with this email address'});
+      final verified = await dependencies.database.isUserEmailVerified(user['id'].toString());
+      final role = user['role'] as String;
+      if (!verified && !['system_admin', 'chief_admin'].contains(role)) {
+        return _json(401, {'message': 'Please verify your email address before logging in. Check your inbox for the verification email.', 'requiresEmailVerification': true, 'email': user['email']});
       }
-
-      final isEmailVerified = await dependencies.database.isUserEmailVerified(user['id'].toString());
-      final userRole = user['role'] as String;
-      if (!isEmailVerified && !['system_admin', 'chief_admin'].contains(userRole)) {
-        return _json(401, {
-          'message': 'Please verify your email address before logging in. Check your inbox for the verification email.',
-          'requiresEmailVerification': true,
-          'email': user['email'],
-        });
-      }
-
-      if (!BCrypt.checkpw(password, user['password_hash'])) {
-        return _json(401, {'message': 'Incorrect password'});
-      }
-
-      final token = JWT({
-        'sub': user['id'],
-        'email': user['email'],
-        'role': user['role'],
-      }).sign(
-        SecretKey(AuthMiddleware.jwtSecret),
-        expiresIn: const Duration(hours: 1),
-      );
-
-      final refreshToken = JWT({
-        'sub': user['id'],
-        'type': 'refresh',
-        'jti': DateTime.now().millisecondsSinceEpoch.toString(),
-      }).sign(
-        SecretKey(AuthMiddleware.jwtSecret),
-        expiresIn: const Duration(days: 30),
-      );
-
-      return _json(200, {
-        'token': token,
-        'refreshToken': refreshToken,
-        'user': {
-          'id': user['id'],
-          'email': user['email'],
-          'firstName': user['first_name'],
-          'lastName': user['last_name'],
-          'role': user['role'],
-        }
-      });
+      if (!BCrypt.checkpw(password, user['password_hash'])) return _json(401, {'message': 'Incorrect password'});
+      return _tokenResponse(user);
     } catch (error) {
       print('Login error: $error');
       return _json(500, {'message': 'Internal server error'});
     }
   }
 
-  Response _json(int statusCode, Map<String, dynamic> body) {
-    return Response(
-      statusCode,
-      body: jsonEncode(body),
-      headers: const {'content-type': 'application/json'},
-    );
+  Future<Response> adminLogin(Request request) async {
+    try {
+      final body = await _body(request);
+      final email = body['email'] as String?;
+      final password = body['password'] as String?;
+      if (email == null || password == null) return _json(400, {'message': 'Email and password are required'});
+      final user = await dependencies.database.findUserByEmail(email);
+      if (user == null || !BCrypt.checkpw(password, user['password_hash'])) return _json(401, {'message': 'Incorrect password'});
+      const roles = ['chief_admin', 'system_admin', 'school_admin'];
+      if (!roles.contains(user['role'])) return _json(403, {'message': 'Access denied. Admin privileges required.'});
+      return _tokenResponse(user);
+    } catch (error) {
+      print('Admin login error: $error');
+      return _json(500, {'message': 'Internal server error'});
+    }
   }
+
+  Future<Response> refreshToken(Request request) async {
+    try {
+      final body = await _body(request);
+      final token = body['refreshToken'] as String?;
+      if (token == null) return _json(400, {'message': 'Refresh token is required'});
+      final decoded = JWT.verify(token, SecretKey(AuthMiddleware.jwtSecret));
+      if (decoded.payload['type'] != 'refresh') return _json(401, {'message': 'Invalid refresh token'});
+      final userId = decoded.payload['sub']?.toString();
+      if (userId == null || await dependencies.database.isTokenBlacklisted(token)) return _json(401, {'message': 'Invalid or invalidated refresh token'});
+      final user = await dependencies.database.findUserById(userId);
+      if (user == null) return _json(401, {'message': 'User not found'});
+      await dependencies.database.blacklistToken(token, 'refresh', userId);
+      return _tokenResponse(user);
+    } catch (_) {
+      return _json(401, {'message': 'Invalid or expired refresh token'});
+    }
+  }
+
+  Future<Response> forgotPassword(Request request) async {
+    try {
+      final body = await _body(request);
+      final email = body['email'] as String?;
+      if (email == null) return _json(400, {'message': 'Email is required'});
+      final user = await dependencies.database.findUserByEmail(email);
+      if (user != null) {
+        final token = await dependencies.database.createPasswordResetToken(email, user['id']);
+        print('Password reset token generated for email: $email');
+        print('Reset token: $token');
+      }
+      return _json(200, {'message': 'If an account with this email exists, a password reset link has been sent.'});
+    } catch (_) {
+      return _json(500, {'message': 'Internal server error'});
+    }
+  }
+
+  Future<Response> verifyPassword(Request request) async {
+    try {
+      final userId = _authenticatedUserId(request);
+      if (userId == null) return _json(401, {'error': 'Invalid token'});
+      final body = await _body(request);
+      final password = body['password'] as String?;
+      if (password == null) return _json(400, {'error': 'Password required'});
+      final user = await dependencies.database.findUserById(userId);
+      if (user == null) return _json(404, {'error': 'User not found'});
+      return _json(BCrypt.checkpw(password, user['password_hash']) ? 200 : 401, BCrypt.checkpw(password, user['password_hash']) ? {'valid': true} : {'error': 'Invalid password'});
+    } catch (_) {
+      return _json(500, {'error': 'Internal server error'});
+    }
+  }
+
+  Future<Response> resetPassword(Request request) async {
+    try {
+      final body = await _body(request);
+      final token = body['token'] as String?;
+      final newPassword = body['newPassword'] as String?;
+      if (token == null || newPassword == null) return _json(400, {'message': 'Token and new password are required'});
+      final result = await dependencies.database.resetPassword(token, newPassword);
+      return _json(result['success'] == true ? 200 : 400, {'message': result['message']});
+    } catch (_) {
+      return _json(500, {'message': 'Internal server error'});
+    }
+  }
+
+  Future<Response> verifyEmail(Request request) async {
+    try {
+      final body = await _body(request);
+      final token = body['token'] as String?;
+      if (token == null) return _json(400, {'message': 'Token is required'});
+      final result = await dependencies.database.verifyEmail(token);
+      return _json(result['success'] == true ? 200 : 400, {'message': result['message']});
+    } catch (_) {
+      return _json(500, {'message': 'Internal server error'});
+    }
+  }
+
+  Future<Response> resendVerification(Request request) async {
+    try {
+      final body = await _body(request);
+      final email = body['email'] as String?;
+      if (email == null) return _json(400, {'message': 'Email is required'});
+      final user = await dependencies.database.findUserByEmail(email);
+      if (user != null) {
+        final token = await dependencies.database.createEmailVerificationToken(user['id']);
+        await RealEmailService.sendVerificationEmail(email, token);
+      }
+      return _json(200, {'message': 'If the account exists, a verification email has been sent.'});
+    } catch (_) {
+      return _json(500, {'message': 'Internal server error'});
+    }
+  }
+
+  Future<Map<String, dynamic>> _body(Request request) async => Map<String, dynamic>.from(jsonDecode(await request.readAsString()) as Map);
+
+  String? _authenticatedUserId(Request request) {
+    final header = request.headers['Authorization'];
+    if (header == null || !header.startsWith('Bearer ')) return null;
+    try {
+      final jwt = JWT.verify(header.substring(7), SecretKey(AuthMiddleware.jwtSecret));
+      return (jwt.payload['userId'] ?? jwt.payload['sub'])?.toString();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<Response> _tokenResponse(Map<String, dynamic> user) async {
+    final token = JWT({'sub': user['id'], 'email': user['email'], 'role': user['role']}).sign(SecretKey(AuthMiddleware.jwtSecret), expiresIn: const Duration(hours: 1));
+    final refresh = JWT({'sub': user['id'], 'type': 'refresh', 'jti': DateTime.now().millisecondsSinceEpoch.toString()}).sign(SecretKey(AuthMiddleware.jwtSecret), expiresIn: const Duration(days: 30));
+    return _json(200, {'token': token, 'refreshToken': refresh, 'user': {'id': user['id'], 'email': user['email'], 'firstName': user['first_name'], 'lastName': user['last_name'], 'role': user['role']}});
+  }
+
+  Response _json(int statusCode, Map<String, dynamic> body) => Response(statusCode, body: jsonEncode(body), headers: const {'content-type': 'application/json'});
 }
