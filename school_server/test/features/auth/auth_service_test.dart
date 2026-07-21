@@ -3,11 +3,11 @@ import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
-import '../../lib/app/dependencies.dart';
-import '../../lib/database_service.dart';
-import '../../lib/features/auth/auth_service.dart';
-import '../../lib/platform/events/events.dart';
-import '../../lib/platform/runtime/runtime.dart';
+import '../../../lib/app/dependencies.dart';
+import '../../../lib/database_service.dart';
+import '../../../lib/features/auth/auth_service.dart';
+import '../../../lib/platform/events/events.dart';
+import '../../../lib/platform/runtime/runtime.dart';
 
 void main() {
   late AuthService service;
