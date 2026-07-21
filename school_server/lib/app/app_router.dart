@@ -1,6 +1,7 @@
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
+import '../features/auth/auth.dart';
 import 'dependencies.dart';
 
 /// Composes feature routes into the application's root router.
@@ -19,6 +20,8 @@ class AppRouter {
     router.get('/health', (Request request) {
       return Response.ok('ok');
     });
+
+    registerAuthRoutes(router, AuthService(dependencies));
 
     return router;
   }
