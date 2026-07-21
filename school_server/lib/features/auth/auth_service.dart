@@ -4,6 +4,7 @@ import 'package:bcrypt/bcrypt.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:shelf/shelf.dart';
 
+import '../../../services/password_reset_email_service.dart';
 import '../../../services/real_email_service.dart';
 import '../../app/dependencies.dart';
 import '../../auth_middleware.dart';
@@ -66,7 +67,10 @@ class AuthService {
         return _json(401, {'message': 'Please verify your email address before logging in. Check your inbox for the verification email.', 'requiresEmailVerification': true, 'email': user['email']});
       }
       if (!BCrypt.checkpw(password, user['password_hash'])) return _json(401, {'message': 'Incorrect password'});
-      return _tokenResponse(user);
+      final response = await _tokenResponse(user);
+      final refreshToken = (jsonDecode(response.readAsString()) as Map)['refreshToken'] as String;
+      dependencies.activeSessions[user['id'].toString()] = refreshToken;
+      return response;
     } catch (error) {
       print('Login error: $error');
       return _json(500, {'message': 'Internal server error'});
@@ -83,7 +87,10 @@ class AuthService {
       if (user == null || !BCrypt.checkpw(password, user['password_hash'])) return _json(401, {'message': 'Incorrect password'});
       const roles = ['chief_admin', 'system_admin', 'school_admin'];
       if (!roles.contains(user['role'])) return _json(403, {'message': 'Access denied. Admin privileges required.'});
-      return _tokenResponse(user);
+      final response = await _tokenResponse(user);
+      final refreshToken = (jsonDecode(response.readAsString()) as Map)['refreshToken'] as String;
+      dependencies.activeSessions[user['id'].toString()] = refreshToken;
+      return response;
     } catch (error) {
       print('Admin login error: $error');
       return _json(500, {'message': 'Internal server error'});
@@ -102,7 +109,11 @@ class AuthService {
       final user = await dependencies.database.findUserById(userId);
       if (user == null) return _json(401, {'message': 'User not found'});
       await dependencies.database.blacklistToken(token, 'refresh', userId);
-      return _tokenResponse(user);
+      dependencies.activeSessions.remove(userId);
+      final response = await _tokenResponse(user);
+      final refresh = (jsonDecode(response.readAsString()) as Map)['refreshToken'] as String;
+      dependencies.activeSessions[userId] = refresh;
+      return response;
     } catch (_) {
       return _json(401, {'message': 'Invalid or expired refresh token'});
     }
@@ -116,8 +127,7 @@ class AuthService {
       final user = await dependencies.database.findUserByEmail(email);
       if (user != null) {
         final token = await dependencies.database.createPasswordResetToken(email, user['id']);
-        print('Password reset token generated for email: $email');
-        print('Reset token: $token');
+        await PasswordResetEmailService.send(email: email, token: token);
       }
       return _json(200, {'message': 'If an account with this email exists, a password reset link has been sent.'});
     } catch (_) {
@@ -134,7 +144,8 @@ class AuthService {
       if (password == null) return _json(400, {'error': 'Password required'});
       final user = await dependencies.database.findUserById(userId);
       if (user == null) return _json(404, {'error': 'User not found'});
-      return _json(BCrypt.checkpw(password, user['password_hash']) ? 200 : 401, BCrypt.checkpw(password, user['password_hash']) ? {'valid': true} : {'error': 'Invalid password'});
+      final valid = BCrypt.checkpw(password, user['password_hash']);
+      return _json(valid ? 200 : 401, valid ? {'valid': true} : {'error': 'Invalid password'});
     } catch (_) {
       return _json(500, {'error': 'Internal server error'});
     }
@@ -173,7 +184,11 @@ class AuthService {
       final user = await dependencies.database.findUserByEmail(email);
       if (user != null) {
         final token = await dependencies.database.createEmailVerificationToken(user['id']);
-        await RealEmailService.sendVerificationEmail(email, token);
+        await RealEmailService.sendEmailVerification(
+          email: email,
+          firstName: (user['first_name'] ?? '') as String,
+          verificationToken: token,
+        );
       }
       return _json(200, {'message': 'If the account exists, a verification email has been sent.'});
     } catch (_) {
