@@ -67,10 +67,9 @@ class AuthService {
         return _json(401, {'message': 'Please verify your email address before logging in. Check your inbox for the verification email.', 'requiresEmailVerification': true, 'email': user['email']});
       }
       if (!BCrypt.checkpw(password, user['password_hash'])) return _json(401, {'message': 'Incorrect password'});
-      final response = await _tokenResponse(user);
-      final refreshToken = (jsonDecode(response.readAsString()) as Map)['refreshToken'] as String;
-      dependencies.activeSessions[user['id'].toString()] = refreshToken;
-      return response;
+      final payload = _tokenPayload(user);
+      dependencies.activeSessions[user['id'].toString()] = payload['refreshToken'] as String;
+      return _json(200, payload);
     } catch (error) {
       print('Login error: $error');
       return _json(500, {'message': 'Internal server error'});
@@ -87,10 +86,9 @@ class AuthService {
       if (user == null || !BCrypt.checkpw(password, user['password_hash'])) return _json(401, {'message': 'Incorrect password'});
       const roles = ['chief_admin', 'system_admin', 'school_admin'];
       if (!roles.contains(user['role'])) return _json(403, {'message': 'Access denied. Admin privileges required.'});
-      final response = await _tokenResponse(user);
-      final refreshToken = (jsonDecode(response.readAsString()) as Map)['refreshToken'] as String;
-      dependencies.activeSessions[user['id'].toString()] = refreshToken;
-      return response;
+      final payload = _tokenPayload(user);
+      dependencies.activeSessions[user['id'].toString()] = payload['refreshToken'] as String;
+      return _json(200, payload);
     } catch (error) {
       print('Admin login error: $error');
       return _json(500, {'message': 'Internal server error'});
@@ -110,10 +108,9 @@ class AuthService {
       if (user == null) return _json(401, {'message': 'User not found'});
       await dependencies.database.blacklistToken(token, 'refresh', userId);
       dependencies.activeSessions.remove(userId);
-      final response = await _tokenResponse(user);
-      final refresh = (jsonDecode(response.readAsString()) as Map)['refreshToken'] as String;
-      dependencies.activeSessions[userId] = refresh;
-      return response;
+      final payload = _tokenPayload(user);
+      dependencies.activeSessions[userId] = payload['refreshToken'] as String;
+      return _json(200, payload);
     } catch (_) {
       return _json(401, {'message': 'Invalid or expired refresh token'});
     }
@@ -209,10 +206,10 @@ class AuthService {
     }
   }
 
-  Future<Response> _tokenResponse(Map<String, dynamic> user) async {
+  Map<String, dynamic> _tokenPayload(Map<String, dynamic> user) {
     final token = JWT({'sub': user['id'], 'email': user['email'], 'role': user['role']}).sign(SecretKey(AuthMiddleware.jwtSecret), expiresIn: const Duration(hours: 1));
     final refresh = JWT({'sub': user['id'], 'type': 'refresh', 'jti': DateTime.now().millisecondsSinceEpoch.toString()}).sign(SecretKey(AuthMiddleware.jwtSecret), expiresIn: const Duration(days: 30));
-    return _json(200, {'token': token, 'refreshToken': refresh, 'user': {'id': user['id'], 'email': user['email'], 'firstName': user['first_name'], 'lastName': user['last_name'], 'role': user['role']}});
+    return {'token': token, 'refreshToken': refresh, 'user': {'id': user['id'], 'email': user['email'], 'firstName': user['first_name'], 'lastName': user['last_name'], 'role': user['role']}};
   }
 
   Response _json(int statusCode, Map<String, dynamic> body) => Response(statusCode, body: jsonEncode(body), headers: const {'content-type': 'application/json'});
