@@ -1,27 +1,30 @@
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-import '../features/auth/auth.dart';
+import '../features/auth/auth_cutover.dart';
 import 'dependencies.dart';
 
 /// Composes feature routes into the application's root router.
 ///
-/// The initial version intentionally provides a stable composition boundary.
-/// Existing routes remain in the legacy bootstrap until each bounded feature
-/// is migrated safely.
+/// The router is the migration boundary between the legacy server bootstrap
+/// and the new modular application. Features are mounted here first, allowing
+/// the bootstrap to delegate to this composition root incrementally.
 class AppRouter {
   AppRouter(this.dependencies);
 
   final AppDependencies dependencies;
 
-  Router build() {
+  Router build({Middleware? authMiddleware}) {
     final router = Router();
 
     router.get('/health', (Request request) {
       return Response.ok('ok');
     });
 
-    registerAuthRoutes(router, AuthService(dependencies));
+    AuthRouteCutover(dependencies).mount(
+      router,
+      middleware: authMiddleware,
+    );
 
     return router;
   }
