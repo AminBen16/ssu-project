@@ -3,19 +3,21 @@ import '../platform/events/events.dart';
 import '../platform/runtime/runtime.dart';
 
 /// Central dependency container for the server application.
-///
-/// New features should receive dependencies through this object instead of
-/// reaching into global state. Existing globals can be migrated gradually.
 class AppDependencies {
   AppDependencies({
     required this.database,
     required this.eventBus,
     required this.lifecycle,
-  });
+    Map<String, String>? activeSessions,
+  }) : activeSessions = activeSessions ?? <String, String>{};
 
   final DatabaseService database;
   final EventBus eventBus;
   final ServerLifecycle lifecycle;
+
+  /// Transitional session registry retained for compatibility while the
+  /// legacy authentication implementation is migrated away from server.dart.
+  final Map<String, String> activeSessions;
 
   static Future<AppDependencies> create() async {
     final lifecycle = ServerLifecycle();
