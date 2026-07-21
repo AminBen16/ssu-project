@@ -1,3 +1,4 @@
+import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
 import 'dependencies.dart';
@@ -15,8 +16,8 @@ class AppRouter {
   Router build() {
     final router = Router();
 
-    router.get('/health', (request) {
-      return 'ok';
+    router.get('/health', (Request request) {
+      return Response.ok('ok');
     });
 
     return router;
