@@ -1,0 +1,46 @@
+name: School Server Validation
+
+on:
+  push:
+    branches:
+      - feature/ai-native-foundation
+      - main
+  pull_request:
+    paths:
+      - 'school_server/**'
+      - '.github/workflows/school-server-validation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-school-server:
+    name: Validate school_server
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: school_server
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: '3.8.0'
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test bin
+
+      - name: Static analysis
+        run: dart analyze
+
+      - name: Run authentication tests
+        run: dart test test/features/auth test/app
+
+      - name: Run full test suite
+        run: dart test
