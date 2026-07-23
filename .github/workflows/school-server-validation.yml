@@ -11,7 +11,7 @@ on:
       - '.github/workflows/school-server-validation.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   validate-school-server:
@@ -24,6 +24,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          fetch-depth: 0
 
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
@@ -37,15 +40,25 @@ jobs:
         run: dart format lib test bin
 
       - name: Static analysis
+        id: analyze
+        continue-on-error: true
         run: |
-          set +e
           dart analyze --format machine > analyze.log 2>&1
           status=$?
-          echo '### First analyzer diagnostics' >> "$GITHUB_STEP_SUMMARY"
-          head -n 30 analyze.log >> "$GITHUB_STEP_SUMMARY"
-          echo "ANALYZE_EXIT_CODE=$status" >> "$GITHUB_STEP_SUMMARY"
-          cat analyze.log
+          echo "status=$status" >> "$GITHUB_OUTPUT"
           exit $status
+
+      - name: Persist analyzer diagnostics for inspection
+        if: steps.analyze.outcome == 'failure'
+        working-directory: .
+        run: |
+          mkdir -p ci-artifacts
+          cp school_server/analyze.log ci-artifacts/analyze.log
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ci-artifacts/analyze.log
+          git commit -m "ci: record analyzer diagnostics [skip ci]"
+          git push origin "HEAD:${{ github.head_ref || github.ref_name }}"
 
       - name: Upload analyzer diagnostics
         if: always()
@@ -54,6 +67,10 @@ jobs:
           name: school-server-analyzer-diagnostics
           path: school_server/analyze.log
           if-no-files-found: ignore
+
+      - name: Fail on static analysis errors
+        if: steps.analyze.outcome == 'failure'
+        run: exit 1
 
       - name: Run authentication tests
         run: dart test test/features/auth test/app
