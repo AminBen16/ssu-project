@@ -27,7 +27,8 @@ void main() {
     ));
 
     expect(response.statusCode, 400);
-    expect(await response.readAsString(), contains('Email and password are required'));
+    expect(await response.readAsString(),
+        contains('Email and password are required'));
   });
 
   test('unmigrated routes continue to legacy router', () async {

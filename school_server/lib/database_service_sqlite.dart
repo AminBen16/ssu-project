@@ -35,11 +35,11 @@ class DatabaseService extends impl.DatabaseService {
           "SELECT name FROM sqlite_master WHERE type='table' AND name='users'");
       if (rs.isEmpty) {
         print('Initializing database schema...');
-        
+
         // Create tables manually in the correct order
         await _createTables();
         await _createIndexes();
-        
+
         print('Database schema initialized successfully');
       }
     } catch (e) {

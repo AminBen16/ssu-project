@@ -8,7 +8,8 @@ import '../../lib/app/server_handler.dart';
 import '../../lib/database_service.dart';
 
 void main() {
-  test('production handler routes extracted auth before legacy routes', () async {
+  test('production handler routes extracted auth before legacy routes',
+      () async {
     final legacyRouter = Router();
     legacyRouter.post('/auth/login', (_) => Response(418, body: 'legacy'));
     legacyRouter.get('/legacy-only', (_) => Response.ok('legacy'));
@@ -28,7 +29,8 @@ void main() {
     ));
 
     expect(authResponse.statusCode, 400);
-    expect(await authResponse.readAsString(), contains('Email and password are required'));
+    expect(await authResponse.readAsString(),
+        contains('Email and password are required'));
 
     final legacyResponse = await handler(Request(
       'GET',

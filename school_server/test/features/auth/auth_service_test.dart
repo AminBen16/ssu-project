@@ -70,7 +70,8 @@ void main() {
   });
 
   test('password verification rejects missing bearer token', () async {
-    final response = await service.verifyPassword(_jsonRequest({'password': 'secret'}));
+    final response =
+        await service.verifyPassword(_jsonRequest({'password': 'secret'}));
 
     expect(response.statusCode, 401);
   });

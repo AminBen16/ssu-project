@@ -33,5 +33,6 @@ class DomainEvent {
       };
 
   @override
-  String toString() => 'DomainEvent(type: $type, id: $id, aggregateId: $aggregateId)';
+  String toString() =>
+      'DomainEvent(type: $type, id: $id, aggregateId: $aggregateId)';
 }

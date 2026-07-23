@@ -22,8 +22,5 @@ Handler buildAuthFirstMigrationHandler({
   );
   cutover.mount(authRouter, rateLimit: rateLimit);
 
-  return Cascade()
-      .add(authRouter)
-      .add(legacyRouter)
-      .handler;
+  return Cascade().add(authRouter).add(legacyRouter).handler;
 }

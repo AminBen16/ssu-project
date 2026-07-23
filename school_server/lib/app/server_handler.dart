@@ -33,9 +33,6 @@ Handler buildProductionHandler({
       .addMiddleware(corsHeaders())
       .addMiddleware(logRequests())
       .addHandler(
-        Cascade()
-            .add(staticHandler)
-            .add(applicationHandler)
-            .handler,
+        Cascade().add(staticHandler).add(applicationHandler).handler,
       );
 }

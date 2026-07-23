@@ -5,7 +5,9 @@ import '../../../lib/platform/events/events.dart';
 import '../../../lib/platform/runtime/runtime.dart';
 
 void main() {
-  test('platform runtime owns the event bus and attendance publishes a domain event', () async {
+  test(
+      'platform runtime owns the event bus and attendance publishes a domain event',
+      () async {
     final runtime = PlatformRuntime.instance;
     await runtime.initialize();
 

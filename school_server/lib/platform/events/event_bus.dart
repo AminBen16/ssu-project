@@ -10,7 +10,8 @@ import 'event_handler.dart';
 /// workflows, notifications, and analytics decoupled from the originating
 /// service.
 class EventBus {
-  final Map<String, List<EventHandler>> _handlers = <String, List<EventHandler>>{};
+  final Map<String, List<EventHandler>> _handlers =
+      <String, List<EventHandler>>{};
   final StreamController<DomainEvent> _events =
       StreamController<DomainEvent>.broadcast();
 

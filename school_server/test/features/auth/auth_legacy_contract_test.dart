@@ -34,7 +34,8 @@ void main() {
   });
 
   group('legacy authentication input contract', () {
-    test('register preserves the legacy missing-credentials contract', () async {
+    test('register preserves the legacy missing-credentials contract',
+        () async {
       final response = await service.register(_request({}));
 
       expect(response.statusCode, 400);
@@ -52,7 +53,8 @@ void main() {
       });
     });
 
-    test('admin login preserves the legacy missing-credentials contract', () async {
+    test('admin login preserves the legacy missing-credentials contract',
+        () async {
       final response = await service.adminLogin(_request({}));
 
       expect(response.statusCode, 400);
@@ -70,7 +72,8 @@ void main() {
       });
     });
 
-    test('forgot password preserves the legacy missing-email contract', () async {
+    test('forgot password preserves the legacy missing-email contract',
+        () async {
       final response = await service.forgotPassword(_request({}));
 
       expect(response.statusCode, 400);
@@ -79,8 +82,10 @@ void main() {
       });
     });
 
-    test('verify password preserves the legacy authentication requirement', () async {
-      final response = await service.verifyPassword(_request({'password': 'secret'}));
+    test('verify password preserves the legacy authentication requirement',
+        () async {
+      final response =
+          await service.verifyPassword(_request({'password': 'secret'}));
 
       expect(response.statusCode, 401);
       expect(await _json(response), {
@@ -88,7 +93,8 @@ void main() {
       });
     });
 
-    test('reset password preserves the legacy required-fields contract', () async {
+    test('reset password preserves the legacy required-fields contract',
+        () async {
       final response = await service.resetPassword(_request({}));
 
       expect(response.statusCode, 400);
@@ -106,7 +112,8 @@ void main() {
       });
     });
 
-    test('resend verification preserves the legacy required-email contract', () async {
+    test('resend verification preserves the legacy required-email contract',
+        () async {
       final response = await service.resendVerification(_request({}));
 
       expect(response.statusCode, 400);
