@@ -41,8 +41,10 @@ jobs:
           set +e
           dart analyze --format machine > analyze.log 2>&1
           status=$?
-          cat analyze.log
+          echo '### First analyzer diagnostics' >> "$GITHUB_STEP_SUMMARY"
+          head -n 30 analyze.log >> "$GITHUB_STEP_SUMMARY"
           echo "ANALYZE_EXIT_CODE=$status" >> "$GITHUB_STEP_SUMMARY"
+          cat analyze.log
           exit $status
 
       - name: Upload analyzer diagnostics
