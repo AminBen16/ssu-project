@@ -1,0 +1,92 @@
+name: School Server Validation
+
+on:
+  push:
+    branches:
+      - feature/ai-native-foundation
+      - main
+  pull_request:
+    paths:
+      - 'school_server/**'
+      - '.github/workflows/school-server-validation.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  validate-school-server:
+    name: Validate school_server
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: school_server
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          fetch-depth: 0
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: '3.8.0'
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Apply canonical Dart formatting in CI workspace
+        run: dart format lib test bin
+
+      - name: Static analysis
+        id: analyze
+        continue-on-error: true
+        run: |
+          dart analyze --format machine > analyze.log 2>&1
+          status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit $status
+
+      - name: Persist exact analyzer diagnostics
+        if: steps.analyze.outcome == 'failure' && github.event_name == 'push'
+        working-directory: .
+        run: |
+          mkdir -p ci-artifacts
+          cp school_server/analyze.log ci-artifacts/analyze.log
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ci-artifacts/analyze.log
+          git commit -m "ci: record analyzer diagnostics [skip ci]"
+          git push origin "HEAD:${{ github.ref_name }}"
+
+      - name: Publish analyzer diagnostics to job summary
+        if: steps.analyze.outcome == 'failure'
+        run: |
+          {
+            echo '## Dart analyzer diagnostics'
+            echo
+            echo 'The first 50 diagnostics from the actual CI workspace:'
+            echo
+            echo '```text'
+            head -n 50 analyze.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload analyzer diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: school-server-analyzer-diagnostics
+          path: school_server/analyze.log
+          if-no-files-found: ignore
+
+      - name: Fail on static analysis errors
+        if: steps.analyze.outcome == 'failure'
+        run: exit 1
+
+      - name: Run authentication tests
+        run: dart test test/features/auth test/app
+
+      - name: Run full test suite
+        run: dart test

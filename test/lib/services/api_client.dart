@@ -154,6 +154,8 @@ class ApiClient {
 
     final request = http.MultipartRequest('POST', uri);
     final mergedHeaders = await _mergeHeaders(headers);
+    mergedHeaders.remove('Content-Type');
+    mergedHeaders.remove('content-type');
     request.headers.addAll(mergedHeaders);
 
     if (fields != null) request.fields.addAll(fields);
