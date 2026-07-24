@@ -11,7 +11,7 @@ on:
       - '.github/workflows/school-server-validation.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   validate-school-server:
@@ -48,17 +48,18 @@ jobs:
           echo "status=$status" >> "$GITHUB_OUTPUT"
           exit $status
 
-      - name: Persist analyzer diagnostics for inspection
+      - name: Publish analyzer diagnostics to job summary
         if: steps.analyze.outcome == 'failure'
-        working-directory: .
         run: |
-          mkdir -p ci-artifacts
-          cp school_server/analyze.log ci-artifacts/analyze.log
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ci-artifacts/analyze.log
-          git commit -m "ci: record analyzer diagnostics [skip ci]"
-          git push origin "HEAD:${{ github.head_ref || github.ref_name }}"
+          {
+            echo '## Dart analyzer diagnostics'
+            echo
+            echo 'The first 50 diagnostics from the actual CI workspace:'
+            echo
+            echo '```text'
+            head -n 50 analyze.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload analyzer diagnostics
         if: always()
